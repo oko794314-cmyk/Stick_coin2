@@ -6,35 +6,26 @@
     <title>Stick Coin Pro</title>
     <style>
         :root { --accent: #07FF; --bg: #0a0a0a; --card: #151515; --text: #fff; --green: #00ff88; --red: #ff4444; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; }
         .container { width: 100%; max-width: 450px; height: 100vh; margin: auto; background: var(--card); position: relative; display: flex; flex-direction: column; }
-        
-        /* Auth & Forms */
         .screen { display: none; height: 100%; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .active-screen { display: flex; }
         input { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px 0; transition: 0.2s; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px 0; }
         .btn-main { background: var(--accent); color: #000; }
-        
-        /* UI Elements */
         .page { display: none; flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
         .page.active { display: block; }
-        .balance-big { font-size: 3.5em; font-family: monospace; color: var(--accent); margin: 20px 0; }
-        
-        /* Friends & Chat */
+        .balance-big { font-size: 3.5em; font-family: monospace; color: var(--accent); margin: 20px 0; text-align: center; }
         .list-item { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        .req-box { background: #222; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed var(--accent); }
-        
-        /* Navigation */
         .nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: #111; display: flex; border-top: 1px solid #333; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7em; color: #666; cursor: pointer; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: #666; cursor: pointer; }
         .nav-item.active { color: var(--accent); background: #1a1a1a; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Екран входу -->
+    <!-- Вхід -->
     <div id="auth-screen" class="screen active-screen">
         <h1 style="color:var(--accent); text-align:center">STICK COIN</h1>
         <input type="text" id="uIn" placeholder="Логін">
@@ -43,38 +34,30 @@
         <p id="auth-err" style="color:var(--red); font-size:0.8em; text-align:center"></p>
     </div>
 
-    <!-- Головний інтерфейс -->
+    <!-- Головний екран -->
     <div id="main-ui" class="screen">
         <div id="p-mine" class="page active">
             <h2 style="text-align:center">МАЙНІНГ</h2>
-            <div style="text-align:center">
-                <div class="balance-big" id="bal">0.00000</div>
-                <button id="mBtn" class="btn" style="background:var(--green); font-size:1.2em" onclick="toggleM()">ПОЧАТИ</button>
-                <p id="st-text" style="color:#666">Статус: Готовий</p>
-            </div>
+            <div class="balance-big" id="bal">0.00000</div>
+            <button id="mBtn" class="btn" style="background:var(--green)" onclick="toggleM()">ПОЧАТИ</button>
+            <p id="st-text" style="color:#666; text-align:center">Статус: Готовий</p>
         </div>
 
         <div id="p-friends" class="page">
             <h2>ДРУЗІ</h2>
-            <div class="req-box">
-                <input type="text" id="friendName" placeholder="Логін друга">
-                <button class="btn btn-main" onclick="sendRequest()">Додати в друзі</button>
-            </div>
+            <input type="text" id="friendName" placeholder="Логін друга">
+            <button class="btn btn-main" onclick="sendRequest()">Додати</button>
             <div id="incoming-reqs"></div>
             <div id="friends-list"></div>
         </div>
 
         <div id="p-info" class="page">
-            <h2>ПРО АКАУНТ</h2>
-            <div class="list-item"><span>Логін:</span> <b id="info-login"></b></div>
-            <div class="list-item"><span>Баланс:</span> <b id="info-bal" style="color:var(--accent)"></b></div>
-            <div class="list-item"><span>Пристрій:</span> <b>Web / M5Stick</b></div>
-            
-            <hr style="border:0; border-top:1px solid #333; margin:20px 0">
-            <h3>БЕЗПЕКА</h3>
+            <h2>ІНФО</h2>
+            <div class="list-item">Логін: <b id="info-login"></b></div>
+            <div class="list-item">Баланс: <b id="info-bal"></b></div>
             <input type="password" id="newPass" placeholder="Новий пароль">
-            <button class="btn" style="background:#444; color:#fff" onclick="changePass()">Змінити пароль</button>
-            <button class="btn" style="background:var(--red); color:#fff; margin-top:20px" onclick="logout()">ВИЙТИ З АКАУНТУ</button>
+            <button class="btn" style="background:#333; color:#fff" onclick="changePass()">Змінити пароль</button>
+            <button class="btn" style="background:var(--red); color:#fff; margin-top:20px" onclick="logout()">ВИЙТИ</button>
         </div>
 
         <div class="nav">
@@ -86,7 +69,7 @@
 </div>
 
 <script>
-    const BIN_ID = "6a04f5aaadc21f119a979f14";
+    const BID = "6a04f5aaadc21f119a979f14";
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     let currentUser = null, isM = false, loc = 0, cloud = 0, fullData = null;
 
@@ -94,21 +77,26 @@
         const u = document.getElementById('uIn').value.trim();
         const p = document.getElementById('pIn').value.trim();
         const err = document.getElementById('auth-err');
-        
+        err.innerText = "⏳ Завантаження...";
+
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
             fullData = await r.json();
-            const users = fullData.users;
+            const users = fullData.users || fullData.record.users;
 
             if(users[u] && String(users[u].password) === String(p)) {
                 currentUser = u;
                 cloud = users[u].balance || 0;
+                // Захист: створюємо поля, якщо їх немає
+                if(!users[u].friends) users[u].friends = [];
+                if(!users[u].requests) users[u].requests = [];
+                
                 document.getElementById('auth-screen').classList.remove('active-screen');
                 document.getElementById('main-ui').classList.add('active-screen');
                 upd();
                 loadFriends();
-            } else { err.innerText = "❌ Помилка входу"; }
-        } catch(e) { err.innerText = "⚠️ Сервер не відповідає"; }
+            } else { err.innerText = "❌ Невірні дані"; }
+        } catch(e) { err.innerText = "⚠️ Помилка мережі"; }
     }
 
     function tab(name, el) {
@@ -118,24 +106,28 @@
         el.classList.add('active');
         if(name === 'info') {
             document.getElementById('info-login').innerText = currentUser;
-            document.getElementById('info-bal').innerText = (cloud + loc).toFixed(5) + " STK";
+            document.getElementById('info-bal').innerText = (cloud + loc).toFixed(5);
         }
     }
 
     function toggleM() {
         isM = !isM;
         const b = document.getElementById('mBtn');
-        if(isM) {
-            b.innerText = "ЗУПИНИТИ"; b.style.background = "var(--red)";
-            loop();
-        } else {
-            b.innerText = "ПОЧАТИ"; b.style.background = "var(--green)";
-            sync();
-        }
+        if(isM) { b.innerText = "ЗУПИНИТИ"; b.style.background = "var(--red)"; loop(); }
+        else { b.innerText = "ПОЧАТИ"; b.style.background = "var(--green)"; sync(); }
     }
 
     function loop() { if(isM) { loc += 0.00001; upd(); setTimeout(loop, 1000); } }
     function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
     async function sync() {
-        document.get
+        document.getElementById('st-text').innerText = "⏳ Синхронізація...";
+        fullData.users[currentUser].balance += loc;
+        try {
+            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                body: JSON.stringify(fullData)
+            });
+            cloud += loc; loc = 0; upd();
+            document.getElementById('st-text').innerText = "✅ Збережено";
+        } catch(e) { document.getElementById('st-text').innerText = "❌ Помилка"; }
