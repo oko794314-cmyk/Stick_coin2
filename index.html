@@ -3,170 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick-Coin 2.0 Pro</title>
+    <title>Stick Coin | Mining Farm</title>
     <style>
-        :root { --neon: #00ffcc; --bg: #0a0a0a; --card-bg: #161616; --text: #e0e0e0; --error: #ff4444; }
-        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 90%; max-width: 500px; background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; }
-        h1 { color: var(--neon); letter-spacing: 2px; }
-        .nav-tabs { display: flex; justify-content: space-around; margin-bottom: 25px; border-bottom: 1px solid #333; }
-        .tab { padding: 10px; cursor: pointer; color: #666; }
-        .tab.active { color: var(--neon); border-bottom: 2px solid var(--neon); }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: var(--neon); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-stop { background: var(--error); color: white; }
-        .balance-display { font-size: 48px; font-weight: bold; margin: 20px 0; color: white; text-shadow: 0 0 10px var(--neon); }
-        .status-indicator { font-size: 12px; margin-bottom: 10px; font-weight: bold; }
-        .hidden { display: none; }
-        .friends-list { text-align: left; max-height: 250px; overflow-y: auto; background: #0f0f0f; padding: 15px; border-radius: 12px; }
-        .friend-item { display: flex; justify-content: space-between; padding: 10px 5px; border-bottom: 1px solid #222; }
+        :root {
+            --accent: #07FF; /* Неоновий блакитний */
+            --bg: #0a0a0a;
+            --card: #151515;
+            --text: #ffffff;
+            --gray: #7BEF;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 450px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        h1 { color: var(--accent); letter-spacing: 2px; font-size: 1.5em; margin-bottom: 25px; }
+        
+        .balance-label { font-size: 0.9em; color: var(--gray); margin-bottom: 5px; }
+        .balance-value { font-size: 3em; font-weight: bold; margin-bottom: 20px; font-family: monospace; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        
+        .logout-btn { background: #333; color: #ff4444; margin-top: 20px; font-size: 0.8em; }
+
+        .settings-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .status { font-size: 0.8em; margin-top: 15px; color: #555; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Stick-Coin 2.0</h1>
-    
-    <div id="login-section">
-        <input type="text" id="user-input" placeholder="Логін">
-        <input type="password" id="pass-input" placeholder="Пароль">
-        <button class="btn" onclick="auth()">УВІЙТИ</button>
+
+    <div class="container" id="auth-screen">
+        <h1>STICK COIN LOGIN</h1>
+        <input type="text" id="userIn" placeholder="Ваш логін">
+        <input type="password" id="passIn" placeholder="Ваш пароль">
+        <button onclick="login()">УВІЙТИ В СИСТЕМУ</button>
+        <p class="status">Введіть дані для синхронізації зі стіком</p>
     </div>
 
-    <div id="main-section" class="hidden">
-        <div class="nav-tabs">
-            <div class="tab active" id="tab-mine-btn" onclick="switchTab('mine')">МАЙНІНГ</div>
-            <div class="tab" id="tab-friends-btn" onclick="switchTab('friends')">ТОП</div>
-            <div class="tab" id="tab-transfer-btn" onclick="switchTab('transfer')">ПЕРЕКАЗ</div>
+    <div class="container" id="main-screen" style="display:none;">
+        <h1 id="welcome-msg">DASHBOARD</h1>
+        
+        <div class="balance-label">ЗАГАЛЬНИЙ БАЛАНС (WEB + STICK)</div>
+        <div class="balance-value" id="balance-num">0.00000</div>
+
+        <div class="settings-section">
+            <p style="color: var(--gray); font-size: 0.9em;">Налаштування безпеки</p>
+            <input type="password" id="newPass" placeholder="Новий пароль">
+            <button onclick="changePassword()" style="background: transparent; border: 1px solid var(--accent); color: var(--accent);">ЗМІНИТИ ПАРОЛЬ</button>
         </div>
 
-        <div id="tab-mine">
-            <div id="mine-status" class="status-indicator" style="color: #666;">СТАТУС: ПАУЗА</div>
-            <div class="balance-display" id="bal-val">0.00000</div>
-            <button id="toggle-btn" class="btn" onclick="toggleMining()">ЗАПУСТИТИ МАЙНІНГ</button>
-            <p style="font-size: 12px; color: #444; margin-top: 10px;">Швидкість: 0.0001 STK/сек</p>
-        </div>
-
-        <div id="tab-friends" class="hidden">
-            <div class="friends-list" id="friends-display"></div>
-        </div>
-
-        <div id="tab-transfer" class="hidden">
-            <input type="text" id="target-user" placeholder="Логін отримувача">
-            <input type="number" id="transfer-amount" placeholder="Сума">
-            <button class="btn" onclick="processTransfer()">ВІДПРАВИТИ</button>
-        </div>
+        <button class="logout-btn" onclick="logout()">ВИЙТИ З АКАУНТА</button>
+        <p class="status" id="sync-status">Синхронізація активна...</p>
     </div>
-    <div id="status-msg" style="font-size: 11px; color: #444; margin-top: 20px;">Очікування авторизації...</div>
-</div>
 
 <script>
-    const binID = "6a04f5aaadc21f119a979f14"; 
-    const masterKey = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    const apiUrl = `https://api.jsonbin.io/v3/b/${binID}`;
-    
-    let currentUser = "";
-    let userData = null;
-    let isMining = false;
-    let mineInterval = null;
-    let saveCounter = 0;
+    // Твої ключі до бази даних
+    const BIN_ID = "6a04f5aaadc21f119a979f14";
+    const MASTER_KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+    let currentUser = null;
 
-    async function auth() {
-        const u = document.getElementById('user-input').value.trim();
-        const p = document.getElementById('pass-input').value.trim();
-        if(!u || !p) return;
+    // Перевірка пам'яті браузера при завантаженні
+    window.onload = () => {
+        const saved = localStorage.getItem("stick_user");
+        if (saved) {
+            currentUser = saved;
+            showMain();
+        }
+    };
+
+    // Функція входу
+    async function login() {
+        const u = document.getElementById("userIn").value.trim();
+        const p = document.getElementById("passIn").value.trim();
+        
+        if (!u || !p) return alert("Заповніть всі поля!");
 
         try {
-            const res = await fetch(apiUrl + "/latest", { headers: {"X-Master-Key": masterKey} });
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: {"X-Master-Key": MASTER_KEY}
+            });
             const data = await res.json();
-            userData = data.record;
+            const users = data.record.users;
 
-            if(!userData.users[u]) {
-                userData.users[u] = { pass: p, balance: 0 };
-                await save();
-            } else if(userData.users[u].pass !== p) {
-                alert("Невірний пароль!"); return;
+            if (users[u] && users[u].password === p) {
+                currentUser = u;
+                localStorage.setItem("stick_user", u);
+                showMain();
+            } else {
+                alert("Невірний логін або пароль!");
             }
-
-            currentUser = u;
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('main-section').classList.remove('hidden');
-            document.getElementById('bal-val').innerText = userData.users[currentUser].balance.toFixed(5);
-            document.getElementById('status-msg').innerText = "Підключено як: " + u;
-        } catch(e) { alert("Помилка мережі"); }
-    }
-
-    function toggleMining() {
-        const btn = document.getElementById('toggle-btn');
-        const status = document.getElementById('mine-status');
-
-        if (!isMining) {
-            // Вмикаємо
-            isMining = true;
-            btn.innerText = "ЗУПИНИТИ МАЙНІНГ";
-            btn.classList.add('btn-stop');
-            status.innerText = "СТАТУС: МАЙНІНГ ЗАПУЩЕНО";
-            status.style.color = "var(--neon)";
-            
-            mineInterval = setInterval(() => {
-                userData.users[currentUser].balance += 0.0001;
-                document.getElementById('bal-val').innerText = userData.users[currentUser].balance.toFixed(5);
-                
-                saveCounter++;
-                if(saveCounter >= 30) { // Автозбереження кожні 30 сек
-                    save();
-                    saveCounter = 0;
-                }
-            }, 1000);
-        } else {
-            // Вимикаємо
-            isMining = false;
-            btn.innerText = "ЗАПУСТИТИ МАЙНІНГ";
-            btn.classList.remove('btn-stop');
-            status.innerText = "СТАТУС: ПАУЗА";
-            status.style.color = "#666";
-            clearInterval(mineInterval);
-            save(); // Зберігаємо при зупинці
+        } catch (err) {
+            alert("Помилка з'єднання з базою");
         }
     }
 
-    function switchTab(t) {
-        ['mine','friends','transfer'].forEach(id => document.getElementById('tab-'+id).classList.add('hidden'));
-        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-        document.getElementById('tab-'+t).classList.remove('hidden');
-        document.getElementById('tab-'+t+'-btn').classList.add('active');
-        if(t === 'friends') loadFriends();
-    }
-
-    function loadFriends() {
-        const list = document.getElementById('friends-display');
-        list.innerHTML = "";
-        let sorted = Object.keys(userData.users).sort((a,b) => userData.users[b].balance - userData.users[a].balance);
-        sorted.forEach(u => {
-            list.innerHTML += `<div class="friend-item"><span>${u}</span><span>${userData.users[u].balance.toFixed(4)} STK</span></div>`;
-        });
-    }
-
-    async function processTransfer() {
-        const to = document.getElementById('target-user').value.trim();
-        const amt = parseFloat(document.getElementById('transfer-amount').value);
-        if(!userData.users[to] || userData.users[currentUser].balance < amt || amt <= 0) return alert("Помилка транзакції");
+    // Показ головного екрана
+    function showMain() {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("main-screen").style.display = "block";
+        document.getElementById("welcome-msg").innerText = currentUser.toUpperCase();
         
-        userData.users[currentUser].balance -= amt;
-        userData.users[to].balance += amt;
-        await save();
-        alert("Монети відправлено!");
-        switchTab('mine');
+        updateBalance();
+        // Опитуємо базу кожні 10 секунд, щоб бачити майнінг зі стіка в реальному часі
+        setInterval(updateBalance, 10000);
     }
 
-    async function save() {
+    // Отримання актуального балансу
+    async function updateBalance() {
         try {
-            await fetch(apiUrl, { 
-                method: 'PUT', 
-                headers: {"X-Master-Key": masterKey, "Content-Type": "application/json"}, 
-                body: JSON.stringify(userData) 
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: {"X-Master-Key": MASTER_KEY}
             });
-        } catch(e) { console.log("Помилка збереження"); }
+            const data = await res.json();
+            const bal = data.record.users[currentUser].balance;
+            
+            document.getElementById("balance-num").innerText = bal.toFixed(5);
+            document.getElementById("sync-status").innerText = "Оновлено: " + new Date().toLocaleTimeString();
+        } catch (err) {
+            console.error("Помилка оновлення");
+        }
     }
-</script>
-</body>
-</html>
+
+    // Зміна пароля
+    async function changePassword() {
+        const newP = document.getElementById("newPass").value.trim();
+        if (newP.length < 4) return alert("Пароль занадто короткий!");
+
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: {"X-Master-Key": MASTER_KEY}
+            });
+            let data = await res.json();
+            
+            data.record.users[currentUser].password = newP;
+
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: "PUT",
+                headers: {
+                    "X-Master-Key": MASTER_KEY,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data.record)
+            });
+            alert("Пароль успішно змінено!");
+            document.getElementById("newPass").value = "";
+        } catch (err) {
+            alert("Помилка при збереженні");
+        }
+    }
+
+    // Вихід (очищення пам'я
