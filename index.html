@@ -3,84 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Farm OS v7.6</title>
+    <title>Stick Farm OS v5.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --p: #07FF; 
             --bg: radial-gradient(circle at top, #0a1a2e 0%, #000000 100%);
-            --card: rgba(15, 15, 30, 0.9);
+            --card: rgba(15, 15, 30, 0.85);
             --t: #fff; --g: #00ff88; --r: #ff4444; 
         }
-        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; text-align: center; }
         
-        /* Авторизація */
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 25px; }
+
+        /* Екран авторизації */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; padding: 30px; }
+        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; }
 
-        /* Додаток */
+        /* Основний додаток */
         #app { display: none; flex-direction: column; height: 100vh; }
-        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10px; border-bottom: 1px solid #111; }
-        .stat-val { display: block; color: var(--p); font-size: 13px; margin-top: 5px; }
+        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
+        .view.on { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 14px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.98); opacity: 0.8; }
+        /* Шапка статистики */
+        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 9px; border-bottom: 1px solid rgba(7, 255, 255, 0.1); }
+        .stat-val { display: block; color: var(--p); font-size: 12px; margin-top: 4px; }
 
-        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
-        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 30px rgba(255,68,68,0.2); }
+        /* Ввід та кнопки */
+        input { width: 100%; padding: 14px; margin: 10px 0; background: rgba(0,0,0,0.4); border: 1px solid #222; color: #fff; border-radius: 12px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 14px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
 
-        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; }
-        .view.on { display: block; }
+        /* Кнопка START/STOP */
+        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; position: relative; }
+        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 40px rgba(255,68,68,0.3); }
 
-        nav { display: flex; background: #000; border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
-        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; color: #555; cursor: pointer; }
-        .tab.on { color: var(--p); border-top: 2px solid var(--p); }
+        /* Навігація */
+        nav { display: flex; background: rgba(0,0,0,0.9); border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
+        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; }
+        .tab.on { color: var(--p); border-top: 2px solid var(--p); font-weight: bold; }
 
-        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="box glass">
-            <h2 id="auth-title">STICK OS</h2>
-            <input type="text" id="u" placeholder="ЛОГІН" autocomplete="off">
+            <h2 style="letter-spacing: 5px; margin-bottom: 20px;">STICK <span style="color:var(--p)">FARM</span></h2>
+            <input type="text" id="u" placeholder="ЛОГІН">
             <input type="password" id="p" placeholder="ПАРОЛЬ">
             <button id="abtn">CONNECT</button>
-            <p id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer; text-decoration: underline;">Створити нову ферму</p>
+            <p id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer; text-transform: uppercase;">Створити нову ферму</p>
         </div>
     </div>
 
     <div id="app">
         <div class="header">
             <div>БАЛАНС<span id="stat-bal" class="stat-val">0.00</span></div>
-            <div>NODES<span id="active-nodes" class="stat-val">0</span></div>
-            <div>SPEED<span id="stat-speed" class="stat-val">0x</span></div>
+            <div>АКТИВНІ<span id="active-nodes" class="stat-val">0</span></div>
+            <div>ШВИДКІСТЬ<span id="stat-speed" class="stat-val">0x</span></div>
         </div>
 
-        <div id="v-mine" class="view on" style="text-align:center;">
-            <h1 id="bal" style="font-size:2.8rem; margin: 30px 0; color: var(--p); text-shadow: 0 0 10px rgba(7,255,255,0.3);">0.00000</h1>
+        <div id="v-mine" class="view on">
+            <h1 id="bal" style="font-size:3.2rem; margin: 35px 0; text-shadow: 0 0 15px var(--p);">0.00000</h1>
             <div id="mbtn" class="m-btn">START</div>
-            <p id="m-status" style="color:var(--g); font-size:11px; letter-spacing: 2px;">READY</p>
+            <p id="m-status" style="color:var(--g); font-size:11px; margin-top:10px; letter-spacing: 2px;">SYSTEM READY</p>
         </div>
 
         <div id="v-social" class="view">
-            <h3 style="text-align:center; font-size: 14px;">TOP PLAYERS</h3>
-            <div id="leaderboard"></div>
+            <h3>NETWORK TOP</h3>
+            <div id="friends-list"></div>
         </div>
 
         <div id="v-profile" class="view">
-            <h3 style="text-align:center; font-size: 14px;">OS STATUS</h3>
+            <h3>FARM SETTINGS</h3>
             <div class="glass card"><span>NODE_ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
-            <button onclick="logout()" style="background:var(--r); margin-top: 30px; font-size: 12px;">DISCONNECT</button>
+            <button onclick="logout()" style="background:var(--r); margin-top: 40px;">DISCONNECT & EXIT</button>
         </div>
 
         <nav>
-            <div class="tab on" id="t-mine">MINE</div>
-            <div class="tab" id="t-social">TOP</div>
+            <div class="tab on" id="t-mine">MINING</div>
+            <div class="tab" id="t-social">SOCIAL</div>
             <div class="tab" id="t-profile">PROFILE</div>
         </nav>
     </div>
@@ -88,55 +94,40 @@
     <script>
         const BID = "6a04f5aaadc21f119a979f14";
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        
-        // Дані поточного користувача
-        let currentUser = null;
-        let db = { users: {} };
-        let userData = {
-            cloudBalance: 0,
-            localEarnings: 0,
-            isMining: false,
-            activeNodes: 0
-        };
-        
-        let miningInterval = null;
-        let syncInterval = null;
-        let isRegisterMode = false;
-        
-        const BASE_RATE = 1 / 3600; // 1 монета на годину
+        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
+        const BASE_RATE = 1 / 3600; // 1 STK на годину
 
         window.onload = async function() {
-            const savedLogin = localStorage.getItem('stk_u');
-            const savedPass = localStorage.getItem('stk_p');
-            
-            if (savedLogin && savedPass) {
-                await login(savedLogin, savedPass, true);
-            }
+            // Авто-вхід
+            const sU = localStorage.getItem('stk_u');
+            const sP = localStorage.getItem('stk_p');
+            if (sU && sP) login(sU, sP, true);
 
             document.getElementById('tlink').onclick = () => {
-                isRegisterMode = !isRegisterMode;
-                document.getElementById('auth-title').innerText = isRegisterMode ? "REGISTRY" : "STICK OS";
-                document.getElementById('abtn').innerText = isRegisterMode ? "CREATE" : "CONNECT";
-                document.getElementById('tlink').innerText = isRegisterMode ? "Вже є акаунт? Увійти" : "Створити нову ферму";
+                isReg = !isReg;
+                document.querySelector('#auth-screen h2').innerText = isReg ? "REGISTRY" : "STICK FARM";
+                document.getElementById('abtn').innerText = isReg ? "CREATE" : "CONNECT";
             };
 
             document.getElementById('abtn').onclick = () => {
-                const loginValue = document.getElementById('u').value.trim().toLowerCase();
-                const password = document.getElementById('p').value.trim();
-                
-                if (loginValue.length < 2 || password.length < 2) {
-                    alert("Логін та пароль мають бути не менше 2 символів");
-                    return;
-                }
-                
-                if (isRegisterMode) {
-                    register(loginValue, password);
-                } else {
-                    login(loginValue, password, false);
-                }
+                const u = document.getElementById('u').value.trim().toLowerCase();
+                const p = document.getElementById('p').value.trim();
+                if(!u || !p) return alert("Заповніть поля!");
+                login(u, p, false);
             };
-        };
 
-        async function register(username, password) {
-            try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+            async function login(u, p, auto) {
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
+                        headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
+                    });
+                    db = await res.json();
+                    if (!db.users) db.users = {};
+
+                    if (isReg) {
+                        if (db.users[u]) return alert("Логін зайнятий!");
+                        db.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
+                        
+                        const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                            method: "PUT",
+                            headers: {"X-Master-Key": KEY,
