@@ -8,24 +8,19 @@
         :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
-        
         #app { display: none; flex-direction: column; height: 100vh; }
         .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
         .view.on { display: block; }
-
-        .card { background: var(--card); padding: 18px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #222; }
         input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
         button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
-        
-        .m-btn { width: 170px; height: 170px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 30px auto; display: block; font-weight: 900; }
+        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 30px auto; display: block; font-weight: 900; }
         .m-btn.active { border-color: var(--r); color: var(--r); }
-
         nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
         .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; }
         .tab.on { color: var(--p); border-top: 2px solid var(--p); }
+        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -35,111 +30,101 @@
             <h1 id="atitle">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button onclick="handleAuth()" id="abtn">УВІЙТИ</button>
-            <div id="amsg" style="margin-top:15px; font-size:12px; color:var(--p); min-height:15px;"></div>
-            <div onclick="toggleMode()" id="tlink" style="margin-top:20px; font-size:13px; color:#666; text-decoration:underline; cursor:pointer;">Немає акаунта? Створити</div>
+            <button id="abtn">УВІЙТИ</button>
+            <div id="amsg" style="margin-top:15px; font-size:12px; color:var(--p);"></div>
+            <div id="tlink" style="margin-top:20px; font-size:12px; color:#555; text-decoration:underline; cursor:pointer;">Створити акаунт</div>
         </div>
     </div>
 
     <div id="app">
-        <div style="padding:10px; text-align:center; font-size:10px; color:#444; border-bottom:1px solid #111;">NODE: <span id="utag" style="color:var(--p)">---</span></div>
-        
+        <div style="padding:10px; text-align:center; font-size:10px; color:#444;">NODE: <span id="utag" style="color:var(--p)">---</span></div>
         <div class="view on" id="v-mine">
-            <div style="text-align:center; margin-top:20px">
-                <h1 id="bal" style="font-size:3.2rem; margin:10px 0; font-family: monospace;">0.00000</h1>
-                <button id="m-btn" class="m-btn" onclick="toggleM()">START</button>
+            <div style="text-align:center;">
+                <h1 id="bal" style="font-size:3rem; margin:20px 0; font-family:monospace;">0.00000</h1>
+                <button id="m-btn" class="m-btn">START</button>
                 <p id="m-status" style="color:#444">READY</p>
             </div>
         </div>
-
         <div class="view" id="v-top"><h3>TOP HOLDERS</h3><div id="top-list"></div></div>
-
         <div class="view" id="v-tx">
-            <h3>SEND COINS</h3>
+            <h3>SEND</h3>
             <div class="card">
-                <input type="text" id="tx-to" placeholder="Кому (логін)">
+                <input type="text" id="tx-to" placeholder="Логін">
                 <input type="number" id="tx-amt" placeholder="Сума">
-                <button style="background:var(--g)" onclick="sendSTK()">SEND</button>
+                <button id="sendBtn" style="background:var(--g)">SEND</button>
             </div>
         </div>
-
-        <div class="view" id="v-sys">
-            <h3>SYSTEM</h3>
-            <button style="background:#222; color:var(--r)" onclick="location.reload()">LOGOUT</button>
-        </div>
-
         <nav>
-            <div class="tab on" onclick="tab('mine', this)">MINE</div>
-            <div class="tab" onclick="tab('top', this)">TOP</div>
-            <div class="tab" onclick="tab('tx', this)">SEND</div>
-            <div class="tab" onclick="tab('sys', this)">SYS</div>
+            <div class="tab on" data-v="mine">MINE</div>
+            <div class="tab" data-v="top">TOP</div>
+            <div class="tab" data-v="tx">SEND</div>
+            <div class="tab" id="logoutBtn">EXIT</div>
         </nav>
     </div>
 
-<script>
-    const BID = "6a04f5aaadc21f119a979f14";
-    const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    
-    let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
+    <script>
+        (function() {
+            const BID = "6a04f5aaadc21f119a979f14";
+            const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
 
-    // Зробимо функцію глобальною, щоб HTML її бачив
-    window.toggleMode = function() {
-        isReg = !isReg;
-        document.getElementById('atitle').innerHTML = isReg ? "REGISTRY" : "STICK<span style='color:var(--p)'>COIN</span>";
-        document.getElementById('abtn').innerText = isReg ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
-        document.getElementById('tlink').innerText = isReg ? "Вже є акаунт? Увійти" : "Немає акаунта? Створити";
-    };
+            let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-    window.handleAuth = async function() {
-        const u = document.getElementById('u').value.trim().toLowerCase();
-        const p = document.getElementById('p').value.trim();
-        const msg = document.getElementById('amsg');
-        
-        if(!u || !p) return alert("Заповни всі поля!");
-        msg.innerText = "⏳ Connecting...";
+            const elements = {
+                u: document.getElementById('u'),
+                p: document.getElementById('p'),
+                abtn: document.getElementById('abtn'),
+                atitle: document.getElementById('atitle'),
+                tlink: document.getElementById('tlink'),
+                amsg: document.getElementById('amsg'),
+                app: document.getElementById('app'),
+                auth: document.getElementById('auth-screen'),
+                bal: document.getElementById('bal'),
+                mbtn: document.getElementById('m-btn'),
+                mstat: document.getElementById('m-status'),
+                utag: document.getElementById('utag'),
+                top: document.getElementById('top-list'),
+                txto: document.getElementById('tx-to'),
+                txamt: document.getElementById('tx-amt'),
+                txbtn: document.getElementById('sendBtn')
+            };
 
-        try {
-            const res = await fetch("https://api.jsonbin.io/v3/b/" + BID + "/latest", {
-                headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
-            });
-            db = await res.json();
+            elements.tlink.onclick = () => {
+                isReg = !isReg;
+                elements.atitle.innerText = isReg ? "REGISTRY" : "STICK COIN";
+                elements.abtn.innerText = isReg ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
+                elements.tlink.innerText = isReg ? "Вже є акаунт? Увійти" : "Створити акаунт";
+            };
 
-            if(isReg) {
-                if(db.users[u]) {
-                    msg.innerText = "❌ Логін зайнятий";
-                    return;
-                }
-                db.users[u] = { password: p, balance: 10 };
-                await sync();
-                alert("Успіх! Тепер увійди.");
-                toggleMode();
-            } else {
-                if(db.users[u] && String(db.users[u].password) === String(p)) {
-                    cur = u;
-                    cloud = db.users[u].balance || 0;
-                    document.getElementById('utag').innerText = u.toUpperCase();
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'flex';
-                    upd();
-                } else {
-                    msg.innerText = "❌ Невірні дані";
-                }
-            }
-        } catch(e) {
-            alert("Помилка: " + e.message);
-        }
-        msg.innerText = "";
-    };
+            elements.abtn.onclick = async () => {
+                const u = elements.u.value.trim().toLowerCase();
+                const p = elements.p.value.trim();
+                if (!u || !p) return alert("Заповни поля!");
 
-    window.tab = function(id, el) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-        document.getElementById('v-'+id).classList.add('on');
-        el.classList.add('on');
-        if(id === 'top') renderTop();
-    };
+                elements.amsg.innerText = "⏳ Підключення...";
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+                        headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
+                    });
+                    db = await res.json();
 
-    window.toggleM = function() {
-        isM = !isM;
-        const b = document.getElementById('m-btn');
-        b.innerText = isM
+                    if (isReg) {
+                        if (db.users[u]) return alert("Логін зайнятий!");
+                        db.users[u] = { password: p, balance: 10 };
+                        await syncData();
+                        alert("Створено! Тепер увійдіть.");
+                        elements.tlink.onclick();
+                    } else {
+                        if (db.users[u] && String(db.users[u].password) === String(p)) {
+                            cur = u;
+                            cloud = db.users[u].balance || 0;
+                            elements.utag.innerText = u.toUpperCase();
+                            elements.auth.style.display = 'none';
+                            elements.app.style.display = 'flex';
+                            updateUI();
+                        } else alert("Невірні дані!");
+                    }
+                } catch (e) { alert("Помилка: " + e.message); }
+                elements.amsg.innerText = "";
+            };
+
+            elements.mbtn.onclick = () => {
