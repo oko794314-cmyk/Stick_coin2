@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --p: #07FF; 
+            --p: #07ff00; 
             --bg: radial-gradient(circle at top, #0a1a2e 0%, #000000 100%);
             --card: rgba(15, 15, 30, 0.85);
             --t: #fff; --g: #00ff88; --r: #ff4444; 
@@ -37,7 +37,7 @@
         button:active { transform: scale(0.95); }
 
         /* Кнопка START/STOP */
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; position: relative; }
+        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
         .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 40px rgba(255,68,68,0.3); }
 
         /* Навігація */
@@ -130,4 +130,82 @@
                         
                         const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
                             method: "PUT",
-                            headers: {"X-Master-Key": KEY,
+                            headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                            body: JSON.stringify(db)
+                        });
+                        if(!saveRes.ok) return alert("Помилка реєстрації!");
+                        isReg = false;
+                        document.querySelector('#auth-screen h2').innerText = "STICK FARM";
+                        document.getElementById('abtn').innerText = "CONNECT";
+                        document.getElementById('u').value = '';
+                        document.getElementById('p').value = '';
+                        return alert("Акаунт створено!");
+                    }
+
+                    if (!db.users[u] || db.users[u].password !== p) {
+                        if (!auto) alert("Невірні дані!");
+                        return;
+                    }
+
+                    cur = u;
+                    localStorage.setItem('stk_u', u);
+                    localStorage.setItem('stk_p', p);
+                    document.getElementById('prof-id').innerText = u.toUpperCase();
+                    
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                    
+                    updateUI();
+                    setInterval(updateUI, 1000);
+
+                    document.getElementById('mbtn').onclick = () => {
+                        isM = !isM;
+                        document.getElementById('mbtn').classList.toggle('active');
+                        document.getElementById('m-status').innerText = isM ? 'MINING...' : 'SYSTEM READY';
+                    };
+
+                    // Навігація
+                    document.getElementById('t-mine').onclick = () => switchView('v-mine');
+                    document.getElementById('t-social').onclick = () => switchView('v-social');
+                    document.getElementById('t-profile').onclick = () => switchView('v-profile');
+
+                } catch(e) {
+                    console.error(e);
+                    alert("Помилка підключення!");
+                }
+            }
+
+            function switchView(viewId) {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+                document.getElementById(viewId).classList.add('on');
+                event.target.classList.add('on');
+            }
+
+            function updateUI() {
+                if (!cur || !db.users[cur]) return;
+                let user = db.users[cur];
+                let balance = user.balance;
+                
+                if (isM) {
+                    balance += BASE_RATE / 1000;
+                    user.balance = balance;
+                }
+
+                document.getElementById('bal').innerText = balance.toFixed(5);
+                document.getElementById('stat-bal').innerText = balance.toFixed(2);
+                document.getElementById('active-nodes').innerText = user.active_nodes;
+                document.getElementById('stat-speed').innerText = isM ? '1x' : '0x';
+            }
+
+            window.logout = function() {
+                if (confirm("Вийти з системи?")) {
+                    localStorage.removeItem('stk_u');
+                    localStorage.removeItem('stk_p');
+                    location.reload();
+                }
+            };
+        };
+    </script>
+</body>
+</html>
