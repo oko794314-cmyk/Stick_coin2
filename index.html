@@ -7,27 +7,18 @@
     <style>
         :root { --p: #07FF; --bg: #050505; --c: #111; --t: #eee; --g: #00ff88; --r: #ff4444; }
         body { background: var(--bg); color: var(--t); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* Auth Screen */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .box { width: 85%; max-width: 320px; text-align: center; }
-        
-        /* Layout */
         #app { display: none; height: 100vh; flex-direction: column; }
         .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
         .view.on { display: block; }
-        
-        /* UI Elements */
         input { width: 100%; padding: 14px; margin: 8px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 12px; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; background: var(--p); color: #000; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
         .card { background: var(--c); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #222; }
-        
-        /* Navigation */
-        nav { display: flex; background: #0a0a0a; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom); }
+        nav { display: flex; background: #0a0a0a; border-top: 1px solid #222; }
         .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; font-weight: bold; color: #555; cursor: pointer; }
         .tab.on { color: var(--p); box-shadow: inset 0 3px 0 var(--p); }
-
-        .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .top-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -43,7 +34,6 @@
     </div>
 
     <div id="app">
-        <!-- Майнінг -->
         <div class="view on" id="v-mine">
             <div style="text-align: center; margin-top: 40px;">
                 <p style="color:#666; font-size:12px">БАЛАНС STK</p>
@@ -53,31 +43,21 @@
             </div>
         </div>
 
-        <!-- Ринок / Топ -->
         <div class="view" id="v-market">
-            <h3 style="color:var(--p)">TOP HOLDERS</h3>
+            <h3 style="color:var(--p)">ЛІДЕРИ</h3>
             <div class="card" id="top-list">Завантаження...</div>
-            
-            <h3 style="color:var(--p)">ТРАНЗАКЦІЯ</h3>
+            <h3 style="color:var(--p)">ПЕРЕКАЗ</h3>
             <div class="card">
-                <input type="text" id="tx-to" placeholder="Логін отримувача">
+                <input type="text" id="tx-to" placeholder="Логін">
                 <input type="number" id="tx-amount" placeholder="Сума">
                 <button onclick="sendSTK()">ВІДПРАВИТИ</button>
             </div>
         </div>
 
-        <!-- Система -->
-        <div class="view" id="v-sys">
-            <h3 style="color:var(--p)">ACCOUNT</h3>
-            <div class="card">Користувач: <b id="i-u"></b></div>
-            <div class="card">Статус заліза: <b style="color:var(--g)">Connected</b></div>
-            <button style="background:var(--r); color:#fff; margin-top:20px" onclick="location.reload()">ВИЙТИ</button>
-        </div>
-
         <nav>
             <div class="tab" onclick="tab('market', this)">МАРКЕТ</div>
             <div class="tab on" onclick="tab('mine', this)">МАЙНІНГ</div>
-            <div class="tab" onclick="tab('sys', this)">СИСТЕМА</div>
+            <div class="tab" onclick="location.reload()">ВИХІД</div>
         </nav>
     </div>
 
@@ -91,20 +71,20 @@
     async function login() {
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
-        document.getElementById('msg').innerText = "⏳ Завантаження...";
+        document.getElementById('msg').innerText = "⏳ Підключення...";
         try {
             const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key": KEY, "X-Bin-Meta": "false"}});
-            const res = await r.json();
-            db = res.record ? res.record : res;
-            const users = db.users;
-
-            if(users[u] && String(users[u].password) === String(p)) {
-                cur = u; cloud = users[u].balance || 0;
+            const data = await r.json();
+            // Гнучка перевірка структури (якщо є .record або просто об'єкт)
+            db = data.record ? data.record : data;
+            
+            if(db.users[u] && String(db.users[u].password) === String(p)) {
+                cur = u; cloud = db.users[u].balance || 0;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
                 upd(); renderTop();
-            } else { document.getElementById('msg').innerText = "❌ Помилка входу"; }
-        } catch(e) { document.getElementById('msg').innerText = "⚠️ Помилка з'єднання"; }
+            } else { document.getElementById('msg').innerText = "❌ Невірний логін/пароль"; }
+        } catch(e) { document.getElementById('msg').innerText = "⚠️ Помилка бази даних"; }
     }
 
     function tab(name, el) {
@@ -112,7 +92,6 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
         document.getElementById('v-'+name).classList.add('on');
         el.classList.add('on');
-        if(name === 'sys') document.getElementById('i-u').innerText = cur;
     }
 
     function toggleM() {
@@ -126,7 +105,7 @@
     function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
     async function sync() {
-        document.getElementById('st-info').innerText = "⏳ Синхронізація...";
+        document.getElementById('st-info').innerText = "⏳ Збереження...";
         db.users[cur].balance += loc;
         try {
             await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
@@ -134,10 +113,23 @@
                 body: JSON.stringify(db)
             });
             cloud += loc; loc = 0;
-            document.getElementById('st-info').innerText = "✅ Збережено";
+            document.getElementById('st-info').innerText = "✅ Дані в хмарі";
             renderTop();
-        } catch(e) { document.getElementById('st-info').innerText = "❌ Помилка"; }
+        } catch(e) { document.getElementById('st-info').innerText = "❌ Помилка синхронізації"; }
     }
 
     function renderTop() {
-        con
+        const list = document.getElementById('top-list');
+        const sorted = Object.entries(db.users).sort((a,b) => b[1].balance - a[1].balance).slice(0, 5);
+        list.innerHTML = sorted.map(([name, u], i) => `
+            <div class="top-item">
+                <span>${i+1}. ${name}</span>
+                <b style="color:var(--p)">${u.balance.toFixed(2)} STK</b>
+            </div>
+        `).join('');
+    }
+
+    async function sendSTK() {
+        const to = document.getElementById('tx-to').value.trim();
+        const amt = parseFloat(document.getElementById('tx-amount').value);
+        if(!db.users[to] || amt <= 0 || (cloud + loc) < amt) return alert("Недостатньо коштів або юзера не існує");
