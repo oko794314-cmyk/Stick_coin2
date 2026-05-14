@@ -3,84 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin Fix</title>
+    <title>Stick Coin - Crypto Game</title>
     <style>
-        body { background: #050505; color: #fff; font-family: sans-serif; text-align: center; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: #121212; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 90%; max-width: 300px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #07FF; border: none; border-radius: 10px; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: #121212; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 90%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #07FF; margin-bottom: 20px; letter-spacing: 2px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #07FF; }
+        button { width: 100%; padding: 14px; background: #07FF; border: none; border-radius: 10px; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #00CCFF; transform: translateY(-2px); }
+        .reg-link { margin-top: 15px; font-size: 13px; color: #888; cursor: pointer; text-decoration: underline; }
         #msg { color: #07FF; font-size: 12px; margin-top: 10px; min-height: 15px; }
-        #app { display: none; }
+        #app { display: none; text-align: center; }
     </style>
 </head>
 <body>
 
+    <!-- Екран Входу/Реєстрації -->
     <div id="auth-screen" class="box">
-        <h1 style="margin-top:0">STICK COIN</h1>
+        <h1 id="auth-title">STICK COIN</h1>
         <input type="text" id="u" placeholder="Логін">
         <input type="password" id="p" placeholder="Пароль">
-        <button onclick="handleLogin()">УВІЙТИ</button>
+        <button id="mainBtn" onclick="handleAuth()">УВІЙТИ</button>
         <div id="msg"></div>
+        <div class="reg-link" id="toggleLink" onclick="toggleMode()">Немає акаунта? Створити</div>
     </div>
 
-    <div id="app">
-        <h1>Вітаємо!</h1>
-        <p>Ви увійшли в систему.</p>
+    <!-- Екран Гри (з'явиться після входу) -->
+    <div id="app" class="box">
+        <h1>ВІТАЄМО!</h1>
+        <p>Ти в системі, <span id="user-display" style="color:#07FF"></span></p>
+        <button onclick="location.reload()">ВИЙТИ</button>
     </div>
 
     <script>
-        // Твої ключі
         const BID = "6a04f5aaadc21f119a979f14";
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+        
+        let isRegMode = false;
 
-        // Робимо функцію глобальною, щоб кнопка її точно побачила
-        window.handleLogin = async function() {
-            const userField = document.getElementById('u');
-            const passField = document.getElementById('p');
+        // Перемикач між Входом та Реєстрацією
+        function toggleMode() {
+            isRegMode = !isRegMode;
+            document.getElementById('auth-title').innerText = isRegMode ? "РЕЄСТРАЦІЯ" : "STICK COIN";
+            document.getElementById('mainBtn').innerText = isRegMode ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
+            document.getElementById('toggleLink').innerText = isRegMode ? "Вже є акаунт? Увійти" : "Немає акаунта? Створити";
+            document.getElementById('msg').innerText = "";
+        }
+
+        async function handleAuth() {
+            const u = document.getElementById('u').value.trim().toLowerCase();
+            const p = document.getElementById('p').value.trim();
             const msg = document.getElementById('msg');
 
-            const u = userField.value.trim();
-            const p = passField.value.trim();
-
-            if (!u || !p) {
-                alert("Введи логін та пароль!");
+            if (u.length < 3 || p.length < 3) {
+                alert("Логін та пароль мають бути не менше 3 символів!");
                 return;
             }
 
-            msg.innerText = "⏳ Підключення до бази...";
+            msg.innerText = "⏳ Завантаження...";
 
             try {
-                const url = "https://api.jsonbin.io/v3/b/" + BID + "/latest";
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        "X-Master-Key": KEY,
-                        "X-Bin-Meta": "false"
-                    }
+                // 1. Отримуємо поточну базу даних
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+                    headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
                 });
+                const db = await res.json();
 
-                if (!response.ok) {
-                    throw new Error("Сервер відповів помилкою: " + response.status);
-                }
+                if (isRegMode) {
+                    // --- ЛОГІКА РЕЄСТРАЦІЇ ---
+                    if (db.users[u]) {
+                        msg.innerText = "❌ Цей логін уже зайнятий";
+                        return;
+                    }
 
-                const data = await response.json();
-                const db = data.record || data;
+                    // Додаємо нового юзера в об'єкт
+                    db.users[u] = {
+                        password: p,
+                        balance: 10.0 // Початковий бонус
+                    };
 
-                if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                    alert("Вхід успішний!");
+                    // Відправляємо оновлену базу назад
+                    const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                        method: 'PUT',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Master-Key": KEY
+                        },
+                        body: JSON.stringify(db)
+                    });
+
+                    if (saveRes.ok) {
+                        alert("Реєстрація успішна! Тепер увійдіть.");
+                        toggleMode();
+                    }
                 } else {
-                    msg.innerText = "❌ Невірний логін або пароль";
-                    alert("Помилка: перевір дані в JSONBin!");
+                    // --- ЛОГІКА ВХОДУ ---
+                    if (db.users[u] && String(db.users[u].password) === String(p)) {
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('app').style.display = 'block';
+                        document.getElementById('user-display').innerText = u.toUpperCase();
+                    } else {
+                        msg.innerText = "❌ Невірний логін або пароль";
+                    }
                 }
-
             } catch (err) {
-                console.error(err);
-                msg.innerText = "⚠️ Помилка зв'язку";
-                alert("Діагностика: " + err.message);
+                alert("Помилка: " + err.message);
+                msg.innerText = "";
             }
-        };
+        }
     </script>
 </body>
 </html>
