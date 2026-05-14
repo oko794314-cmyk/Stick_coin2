@@ -3,69 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Coin - Games Edition</title>
+    <title>Stick Coin OS: Genesis</title>
     <style>
-        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        * { box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { 
+            --p: #07FF; 
+            --bg: radial-gradient(circle at top, #0a0a2e 0%, #000000 100%);
+            --card: rgba(20, 20, 40, 0.7);
+            --t: #fff; --g: #00ff88; --r: #ff4444; 
+        }
+        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Скляний ефект (Glassmorphism) */
+        .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
+
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; text-align: center; padding: 25px; background: var(--card); border-radius: 20px; border: 1px solid #222; }
-        
+        .box { width: 85%; max-width: 320px; text-align: center; padding: 25px; }
+
         #app { display: none; flex-direction: column; height: 100vh; }
-        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
+        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; animation: fadeIn 0.3s ease; }
         .view.on { display: block; }
-        
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; }
-        
-        /* Таблиця Хрестики-Нулики */
-        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 200px; margin: 15px auto; }
-        .cell { width: 60px; height: 60px; background: #000; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; }
-        
-        nav { display: flex; background: #080808; border-top: 1px solid #1a1a1a; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Шапка статистики */
+        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid rgba(7, 255, 255, 0.2); }
+        .stat-val { display: block; color: var(--p); font-size: 14px; font-weight: bold; }
+
+        input { width: 100%; padding: 12px; margin: 8px 0; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.3s; }
+        button:hover { box-shadow: 0 0 15px var(--p); }
+
+        /* Ігри та Друзі */
+        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .invite-btn { width: auto; padding: 5px 10px; font-size: 10px; background: var(--g); }
+
+        nav { display: flex; background: rgba(0,0,0,0.8); border-top: 1px solid #222; }
         .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #555; cursor: pointer; }
-        .tab.on { color: var(--p); border-top: 2px solid var(--p); }
-        
-        .card { background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #222; display: flex; justify-content: space-between; font-size: 14px; }
+        .tab.on { color: var(--p); border-bottom: 3px solid var(--p); }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div id="auth-screen">
-        <div class="box">
-            <h2 id="atitle">STICK COIN</h2>
-            <input type="text" id="u" placeholder="Логін">
-            <input type="password" id="p" placeholder="Пароль">
-            <button id="abtn">УВІЙТИ</button>
-            <p id="tlink" style="margin-top:15px; font-size:12px; color:#555;">Реєстрація</p>
+        <div class="box glass">
+            <h2 id="atitle" style="letter-spacing: 4px;">STICK<span style="color:var(--p)">COIN</span></h2>
+            <input type="text" id="u" placeholder="CYBER_LOGIN">
+            <input type="password" id="p" placeholder="ACCESS_CODE">
+            <button id="abtn">CONNECT</button>
+            <p id="tlink" style="margin-top:15px; font-size:12px; color:#555; cursor:pointer;">REGISTRY NEW NODE</p>
         </div>
     </div>
 
     <div id="app">
+        <div class="header">
+            <div>STK_BAL<span id="stat-bal" class="stat-val">0.00</span></div>
+            <div>NODES<span id="stat-nodes" class="stat-val">1</span></div>
+            <div>ALLIES<span id="stat-friends" class="stat-val">0</span></div>
+        </div>
+
         <div id="v-mine" class="view on">
-            <h1 id="bal">0.0000</h1>
-            <button id="mbtn" style="width:120px; height:120px; border-radius:50%; border:4px solid var(--g); background:none; color:var(--g);">START</button>
+            <h1 id="bal" style="font-size:3.5rem; text-shadow: 0 0 20px var(--p);">0.0000</h1>
+            <button id="mbtn" style="width:150px; height:150px; border-radius:50%; border:4px solid var(--g); background:none; color:var(--g); box-shadow: inset 0 0 20px var(--g);">EXTRACT</button>
+        </div>
+
+        <div id="v-social" class="view">
+            <h3>NETWORK_TOP</h3>
+            <div class="glass" style="padding: 10px; margin-bottom: 15px;">
+                <input type="text" id="f-search" placeholder="Search Node ID...">
+                <button id="f-add" style="background: var(--g); font-size: 10px;">SEND FRIEND REQUEST</button>
+            </div>
+            <div id="friends-list"></div>
         </div>
 
         <div id="v-games" class="view">
-            <h3>TIC-TAC-TOE</h3>
-            <input type="number" id="game-bet" placeholder="Ставка STK" style="width:120px;">
-            <div class="board" id="board"></div>
-            <p id="g-status">Очікування ставки</p>
-            <button id="reset-btn" style="width:120px; margin-top:10px;">ЗАНОВО</button>
+            <h3>BATTLE_ARENA</h3>
+            <div class="glass" style="padding:15px;">
+                <p id="g-status">Оберіть суперника у вкладці SOCIAL</p>
+                </div>
         </div>
 
-        <div id="v-friends" class="view">
-            <h3>MY FRIENDS</h3>
-            <div id="friends-list"></div>
+        <div id="v-profile" class="view">
+            <h3>CORE_SETTINGS</h3>
+            <div class="glass card">
+                <span>DARK_MODE</span>
+                <span style="color:var(--g)">ENABLED</span>
+            </div>
+            <button onclick="location.reload()" style="background:var(--r); margin-top: 50px;">DISCONNECT (EXIT)</button>
         </div>
 
         <nav>
             <div class="tab on" id="t-mine">MINE</div>
+            <div class="tab" id="t-social">SOCIAL</div>
             <div class="tab" id="t-games">GAMES</div>
-            <div class="tab" id="t-friends">FRIENDS</div>
-            <div class="tab" onclick="location.reload()" style="color:var(--r)">EXIT</div>
+            <div class="tab" id="t-profile">CORE</div>
         </nav>
     </div>
 
@@ -75,154 +106,28 @@
             const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
             let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-            // --- АВТОРИЗАЦІЯ ---
-            document.getElementById('tlink').onclick = () => {
-                isReg = !isReg;
-                document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
-                document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
-            };
-
+            // Вхід
             document.getElementById('abtn').onclick = async () => {
                 const u = document.getElementById('u').value.trim().toLowerCase();
                 const p = document.getElementById('p').value.trim();
-                if(!u || !p) return alert("Заповніть усі поля!");
-                try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} });
-                    db = await res.json();
-                    if(!db.users) db.users = {};
-                    if(isReg) {
-                        if(db.users[u]) return alert("Користувач існує!");
-                        db.users[u] = { password: p, balance: 1.0 };
-                        await sync();
-                        alert("Акаунт створено!");
-                        isReg = false;
-                        document.getElementById('atitle').innerText = "STICK COIN";
-                        document.getElementById('abtn').innerText = "УВІЙТИ";
-                        document.getElementById('u').value = "";
-                        document.getElementById('p').value = "";
-                    } else if(db.users[u] && db.users[u].password == p) {
-                        cur = u; cloud = db.users[u].balance;
-                        document.getElementById('auth-screen').style.display = 'none';
-                        document.getElementById('app').style.display = 'flex';
-                        upd();
-                    } else alert("Помилка!");
-                } catch(e) { alert("Сервер!"); console.error(e); }
-            };
-
-            // --- НАВІГАЦІЯ ---
-            function showView(id) {
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-                document.getElementById(id).classList.add('on');
-                document.getElementById('t-' + id.substring(2)).classList.add('on');
-            }
-
-            document.getElementById('t-mine').onclick = () => showView('v-mine');
-            document.getElementById('t-games').onclick = () => showView('v-games');
-            document.getElementById('t-friends').onclick = () => showView('v-friends');
-
-            // --- МАЙНІНГ ---
-            document.getElementById('mbtn').onclick = function() {
-                isM = !isM; this.innerText = isM ? "STOP" : "START";
-                if(!isM) sync(); else loop();
-            };
-            function loop() { if(isM) { loc += 0.0001; upd(); setTimeout(loop, 1000); } }
-            function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(4); }
-
-            async function sync() {
-                if(!cur) return;
-                db.users[cur].balance = cloud + loc;
-                try {
-                    await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                        method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                        body: JSON.stringify(db)
-                    });
-                    cloud += loc; loc = 0;
-                } catch(e) { console.error(e); }
-            }
-
-            // --- ХРЕСТИКИ НУЛИКИ ---
-            let board = ["", "", "", "", "", "", "", "", ""];
-            let gameActive = true;
-            let currentBet = 0;
-            const bEl = document.getElementById('board');
-            
-            function initBoard() {
-                bEl.innerHTML = "";
-                board.forEach((c, i) => {
-                    const d = document.createElement('div'); 
-                    d.className = 'cell';
-                    d.innerText = c; 
-                    d.onclick = () => makeMove(i);
-                    bEl.appendChild(d);
-                });
-            }
-            initBoard();
-
-            function checkWin(player) {
-                const wins = [
-                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                    [0, 4, 8], [2, 4, 6]
-                ];
-                return wins.some(combo => combo.every(i => board[i] === player));
-            }
-
-            function isBoardFull() {
-                return board.every(cell => cell !== "");
-            }
-
-            function aiMove() {
-                const emptyCells = board.map((c, i) => c === "" ? i : -1).filter(i => i !== -1);
-                if(emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = "O";
-                    initBoard();
-                    if(checkWin("O")) {
-                        document.getElementById('g-status').innerText = "AI виграв! Ви програли " + currentBet + " STK";
-                        gameActive = false;
-                        cloud -= currentBet;
-                        upd();
-                    } else if(isBoardFull()) {
-                        document.getElementById('g-status').innerText = "Нічия!";
-                        gameActive = false;
-                    }
-                }
-            }
-
-            function makeMove(i) {
-                if(!gameActive) return;
-                const bet = parseFloat(document.getElementById('game-bet').value);
-                if(isNaN(bet) || bet <= 0) return alert("Вкажіть ставку!");
-                if((cloud + loc) < bet) return alert("Недостатньо коштів!");
-                if(board[i] !== "") return;
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} });
+                db = await res.json();
                 
-                if(currentBet === 0) currentBet = bet;
-                
-                board[i] = "X";
-                initBoard();
-                
-                if(checkWin("X")) {
-                    document.getElementById('g-status').innerText = "Ви виграли! +' " + (bet * 2) + " STK";
-                    cloud += bet * 2;
+                if(isReg) {
+                    db.users[u] = { password: p, balance: 0.0, friends: [], devices: 1 };
+                    await sync(); location.reload();
+                } else if(db.users[u] && db.users[u].password == p) {
+                    cur = u; cloud = db.users[u].balance;
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                    // Рахуємо кількість пристроїв (проста симуляція)
+                    db.users[u].devices = (db.users[u].devices || 1) + 1;
                     upd();
-                    gameActive = false;
-                } else if(isBoardFull()) {
-                    document.getElementById('g-status').innerText = "Нічия!";
-                    gameActive = false;
-                } else {
-                    setTimeout(aiMove, 500);
                 }
-            }
-
-            document.getElementById('reset-btn').onclick = () => {
-                board = ["", "", "", "", "", "", "", "", ""];
-                gameActive = true;
-                currentBet = 0;
-                document.getElementById('g-status').innerText = "Гра почата!";
-                initBoard();
             };
-        };
-    </script>
-</body>
-</html>
+
+            function upd() {
+                document.getElementById('bal').innerText = (cloud + loc).toFixed(4);
+                document.getElementById('stat-bal').innerText = (cloud + loc).toFixed(2);
+                document.getElementById('stat-friends').innerText = Object.keys(db.users).length - 1;
+                document.getElementById('stat
