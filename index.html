@@ -2,126 +2,83 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Coin OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick Coin Fix</title>
     <style>
-        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
-        #app { display: none; flex-direction: column; height: 100vh; }
-        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
-        .view.on { display: block; }
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 30px auto; display: block; font-weight: 900; }
-        .m-btn.active { border-color: var(--r); color: var(--r); }
-        nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
-        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 11px; color: #444; cursor: pointer; }
-        .tab.on { color: var(--p); border-top: 2px solid var(--p); }
-        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
+        body { background: #050505; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: #121212; padding: 30px; border-radius: 20px; border: 1px solid #222; text-align: center; width: 300px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #07FF; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        #app { display: none; text-align: center; }
+        .bal { font-size: 3rem; color: #07FF; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="box">
-            <h1 id="atitle">STICK<span style="color:var(--p)">COIN</span></h1>
+            <h2>STICK COIN</h2>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button id="abtn" onclick="handleAuth()">УВІЙТИ</button>
-            <div id="amsg" style="margin-top:10px; font-size:12px; color:var(--p);"></div>
-            <div id="tlink" onclick="toggleMode()" style="margin-top:20px; font-size:12px; color:#555; cursor:pointer;">Створити акаунт</div>
+            <button id="login-btn">УВІЙТИ</button>
+            <p id="msg" style="font-size: 12px; color: #555; margin-top: 10px;"></p>
         </div>
     </div>
 
     <div id="app">
-        <div style="padding:10px; text-align:center; font-size:10px; color:#444; border-bottom: 1px solid #111;">
-            USER: <span id="utag" style="color:var(--p)">---</span>
-        </div>
-        <div class="view on" id="v-mine">
-            <div style="text-align:center;">
-                <h1 id="bal" style="font-size:3.5rem; margin:20px 0; font-family:monospace;">0.00000</h1>
-                <button id="m-btn" class="m-btn" onclick="toggleMining()">START</button>
-                <p id="m-status" style="color:#444">READY</p>
-            </div>
-        </div>
-        <div class="view" id="v-top"><h2 style="text-align:center;">TOP HOLDERS</h2><div id="top-list"></div></div>
-        <div class="view" id="v-tx">
-            <h2 style="text-align:center;">SEND COINS</h2>
-            <div class="card">
-                <input type="text" id="tx-to" placeholder="Логін отримувача">
-                <input type="number" id="tx-amt" placeholder="Кількість">
-                <button onclick="sendCoins()" style="background:var(--g)">SEND</button>
-            </div>
-        </div>
-        <nav>
-            <div class="tab on" onclick="showTab('mine', this)">MINE</div>
-            <div class="tab" onclick="showTab('top', this)">TOP</div>
-            <div class="tab" onclick="showTab('tx', this)">SEND</div>
-            <div class="tab" onclick="location.reload()" style="color:var(--r)">EXIT</div>
-        </nav>
+        <p>Вітаємо, <span id="user-display"></span>!</p>
+        <div class="bal" id="bal-display">0.00</div>
+        <button id="mine-btn" style="background: #00ff88; margin-top: 20px;">MINE</button>
+        <button onclick="location.reload()" style="background: #ff4444; margin-top: 10px;">EXIT</button>
     </div>
 
     <script>
+        // Твої дані для підключення
         const BID = "6a04f5aaadc21f119a979f14";
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-        async function handleAuth() {
-            const u = document.getElementById('u').value.trim().toLowerCase();
-            const p = document.getElementById('p').value.trim();
-            const msg = document.getElementById('amsg');
-            if (!u || !p) return alert("Заповни поля!");
+        let db, currentStatus = 0;
 
-            msg.innerText = "⏳ З'єднання...";
+        // Обробка натискання кнопки через ID (так надійніше, ніж через onclick у HTML)
+        document.getElementById('login-btn').onclick = async () => {
+            const userInp = document.getElementById('u').value.trim().toLowerCase();
+            const passInp = document.getElementById('p').value.trim();
+            const msg = document.getElementById('msg');
+
+            msg.innerText = "⏳ Завантаження...";
+
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?nocache=${Math.random()}`, {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
                     headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
                 });
+                
+                if (!res.ok) throw new Error("Помилка зв'язку з сервером");
+                
                 db = await res.json();
 
-                if (isReg) {
-                    if (db.users[u]) return alert("Логін вже зайнятий!");
-                    db.users[u] = { password: p, balance: 1.0 };
-                    await sync();
-                    alert("Готово! Тепер увійди.");
-                    toggleMode();
+                // Перевірка користувача в базі
+                if (db.users && db.users[userInp] && String(db.users[userInp].password) === String(passInp)) {
+                    // Успішний вхід
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    document.getElementById('user-display').innerText = userInp;
+                    document.getElementById('bal-display').innerText = db.users[userInp].balance.toFixed(2);
                 } else {
-                    if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
-                        cur = u;
-                        cloud = db.users[u].balance || 0;
-                        document.getElementById('utag').innerText = u.toUpperCase();
-                        document.getElementById('auth-screen').style.display = 'none';
-                        document.getElementById('app').style.display = 'flex';
-                        updUI();
-                    } else alert("Логін або пароль невірні!");
+                    alert("Невірний логін або пароль!");
                 }
-            } catch (e) { alert("Помилка мережі: " + e.message); }
-            msg.innerText = "";
-        }
+            } catch (e) {
+                alert("Критична помилка: " + e.message);
+            } finally {
+                msg.innerText = "";
+            }
+        };
 
-        function toggleMode() {
-            isReg = !isReg;
-            document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
-            document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
-            document.getElementById('tlink').innerText = isReg ? "Вже є акаунт?" : "Створити акаунт";
-        }
-
-        function toggleMining() {
-            isM = !isM;
-            const btn = document.getElementById('m-btn');
-            btn.innerText = isM ? "STOP" : "START";
-            btn.classList.toggle('active', isM);
-            if (isM) loop(); else sync();
-        }
-
-        function loop() { if (isM) { loc += 0.00004; updUI(); setTimeout(loop, 1000); } }
-        function updUI() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
-
-        async function sync() {
-            document.getElementById('m-status').innerText = "⏳ SAVING...";
-            db.users[cur].balance = cloud + loc;
-            try {
-                await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+        // Простий майнінг для перевірки
+        document.getElementById('mine-btn').onclick = () => {
+            currentStatus += 0.01;
+            const currentBal = parseFloat(document.getElementById('bal-display').innerText);
+            document.getElementById('bal-display').innerText = (currentBal + 0.01).toFixed(2);
+        };
+    </script>
+</body>
+</html>
