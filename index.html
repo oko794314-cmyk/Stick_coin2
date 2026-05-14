@@ -5,80 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stick Coin Fix</title>
     <style>
-        body { background: #050505; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: #121212; padding: 30px; border-radius: 20px; border: 1px solid #222; text-align: center; width: 300px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #07FF; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        #app { display: none; text-align: center; }
-        .bal { font-size: 3rem; color: #07FF; }
+        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; }
+        body { background: var(--bg); color: var(--t); font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #222; text-align: center; width: 300px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 12px; background: var(--p); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; }
+        #app { display: none; text-align: center; width: 100%; }
+        .bal { font-size: 3rem; color: var(--p); font-family: monospace; margin: 20px 0; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="box">
-            <h2>STICK COIN</h2>
+            <h2 id="atitle">STICK COIN</h2>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button id="login-btn">УВІЙТИ</button>
-            <p id="msg" style="font-size: 12px; color: #555; margin-top: 10px;"></p>
+            <button id="abtn">УВІЙТИ</button>
+            <div id="tlink" style="margin-top:20px; font-size:12px; color:#555; cursor:pointer;">Створити акаунт</div>
+            <p id="amsg" style="font-size: 11px; color: var(--p); margin-top: 10px;"></p>
         </div>
     </div>
 
     <div id="app">
-        <p>Вітаємо, <span id="user-display"></span>!</p>
-        <div class="bal" id="bal-display">0.00</div>
-        <button id="mine-btn" style="background: #00ff88; margin-top: 20px;">MINE</button>
-        <button onclick="location.reload()" style="background: #ff4444; margin-top: 10px;">EXIT</button>
+        <div class="box" style="margin: auto;">
+            <p style="color:#555">USER: <span id="utag" style="color:var(--p)">---</span></p>
+            <div class="bal" id="bal">0.00</div>
+            <button id="mbtn" style="background:#00ff88">START MINING</button>
+            <button onclick="location.reload()" style="background:#ff4444; margin-top:10px">EXIT</button>
+        </div>
     </div>
 
     <script>
-        // Твої дані для підключення
         const BID = "6a04f5aaadc21f119a979f14";
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+        
+        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-        let db, currentStatus = 0;
+        // Навішуємо події безпосередньо в скрипті, щоб уникнути "is not defined"
+        document.getElementById('tlink').onclick = function() {
+            isReg = !isReg;
+            document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
+            document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
+            this.innerText = isReg ? "Вже є акаунт? Увійти" : "Створити акаунт";
+        };
 
-        // Обробка натискання кнопки через ID (так надійніше, ніж через onclick у HTML)
-        document.getElementById('login-btn').onclick = async () => {
-            const userInp = document.getElementById('u').value.trim().toLowerCase();
-            const passInp = document.getElementById('p').value.trim();
-            const msg = document.getElementById('msg');
+        document.getElementById('abtn').onclick = async function() {
+            const u = document.getElementById('u').value.trim().toLowerCase();
+            const p = document.getElementById('p').value.trim();
+            const msg = document.getElementById('amsg');
+            if (!u || !p) return alert("Введіть дані!");
 
-            msg.innerText = "⏳ Завантаження...";
-
+            msg.innerText = "⏳ Підключення...";
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?n=${Math.random()}`, {
                     headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
                 });
-                
-                if (!res.ok) throw new Error("Помилка зв'язку з сервером");
-                
                 db = await res.json();
 
-                // Перевірка користувача в базі
-                if (db.users && db.users[userInp] && String(db.users[userInp].password) === String(passInp)) {
-                    // Успішний вхід
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                    document.getElementById('user-display').innerText = userInp;
-                    document.getElementById('bal-display').innerText = db.users[userInp].balance.toFixed(2);
+                if (isReg) {
+                    if (db.users[u]) return alert("Логін зайнятий!");
+                    db.users[u] = { password: p, balance: 1.0 };
+                    await syncData();
+                    alert("Готово! Тепер увійдіть.");
+                    location.reload();
                 } else {
-                    alert("Невірний логін або пароль!");
+                    if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
+                        cur = u;
+                        cloud = db.users[u].balance || 0;
+                        document.getElementById('utag').innerText = u.toUpperCase();
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('app').style.display = 'block';
+                        updateBal();
+                    } else alert("Помилка входу!");
                 }
-            } catch (e) {
-                alert("Критична помилка: " + e.message);
-            } finally {
-                msg.innerText = "";
-            }
+            } catch (e) { alert("Помилка: " + e.message); }
+            msg.innerText = "";
         };
 
-        // Простий майнінг для перевірки
-        document.getElementById('mine-btn').onclick = () => {
-            currentStatus += 0.01;
-            const currentBal = parseFloat(document.getElementById('bal-display').innerText);
-            document.getElementById('bal-display').innerText = (currentBal + 0.01).toFixed(2);
+        const mbtn = document.getElementById('mbtn');
+        mbtn.onclick = function() {
+            isM = !isM;
+            this.innerText = isM ? "STOP" : "START MINING";
+            this.style.background = isM ? "#ff4444" : "#00ff88";
+            if (isM) loop(); else syncData();
         };
+
+        function loop() { if (isM) { loc += 0.0001; updateBal(); setTimeout(loop, 1000); } }
+        function updateBal() { document.getElementById('bal').innerText = (cloud + loc).toFixed(4); }
+
+        async function syncData() {
+            if (!cur) return;
+            db.users[cur].balance = cloud + loc;
+            try {
+                await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                    method: "PUT",
+                    headers: { "X-Master-Key": KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify(db)
+                });
+                cloud += loc; loc = 0;
+            } catch (e) { console.error("Sync error"); }
+        }
     </script>
 </body>
 </html>
