@@ -53,6 +53,7 @@
             <input type="number" id="game-bet" placeholder="Ставка STK" style="width:120px;">
             <div class="board" id="board"></div>
             <p id="g-status">Очікування ставки</p>
+            <button id="reset-btn" style="width:120px; margin-top:10px;">ЗАНОВО</button>
         </div>
 
         <div id="v-friends" class="view">
@@ -84,20 +85,41 @@
             document.getElementById('abtn').onclick = async () => {
                 const u = document.getElementById('u').value.trim().toLowerCase();
                 const p = document.getElementById('p').value.trim();
+                if(!u || !p) return alert("Заповніть усі поля!");
                 try {
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} });
                     db = await res.json();
+                    if(!db.users) db.users = {};
                     if(isReg) {
+                        if(db.users[u]) return alert("Користувач існує!");
                         db.users[u] = { password: p, balance: 1.0 };
-                        await sync(); location.reload();
+                        await sync();
+                        alert("Акаунт створено!");
+                        isReg = false;
+                        document.getElementById('atitle').innerText = "STICK COIN";
+                        document.getElementById('abtn').innerText = "УВІЙТИ";
+                        document.getElementById('u').value = "";
+                        document.getElementById('p').value = "";
                     } else if(db.users[u] && db.users[u].password == p) {
                         cur = u; cloud = db.users[u].balance;
                         document.getElementById('auth-screen').style.display = 'none';
                         document.getElementById('app').style.display = 'flex';
                         upd();
                     } else alert("Помилка!");
-                } catch(e) { alert("Сервер!"); }
+                } catch(e) { alert("Сервер!"); console.error(e); }
             };
+
+            // --- НАВІГАЦІЯ ---
+            function showView(id) {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+                document.getElementById(id).classList.add('on');
+                document.getElementById('t-' + id.substring(2)).classList.add('on');
+            }
+
+            document.getElementById('t-mine').onclick = () => showView('v-mine');
+            document.getElementById('t-games').onclick = () => showView('v-games');
+            document.getElementById('t-friends').onclick = () => showView('v-friends');
 
             // --- МАЙНІНГ ---
             document.getElementById('mbtn').onclick = function() {
@@ -110,30 +132,97 @@
             async function sync() {
                 if(!cur) return;
                 db.users[cur].balance = cloud + loc;
-                await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                    method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                    body: JSON.stringify(db)
-                });
-                cloud += loc; loc = 0;
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                        method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                        body: JSON.stringify(db)
+                    });
+                    cloud += loc; loc = 0;
+                } catch(e) { console.error(e); }
             }
 
             // --- ХРЕСТИКИ НУЛИКИ ---
             let board = ["", "", "", "", "", "", "", "", ""];
+            let gameActive = true;
+            let currentBet = 0;
             const bEl = document.getElementById('board');
+            
             function initBoard() {
                 bEl.innerHTML = "";
                 board.forEach((c, i) => {
-                    const d = document.createElement('div'); d.className = 'cell';
-                    d.innerText = c; d.onclick = () => makeMove(i);
+                    const d = document.createElement('div'); 
+                    d.className = 'cell';
+                    d.innerText = c; 
+                    d.onclick = () => makeMove(i);
                     bEl.appendChild(d);
                 });
             }
             initBoard();
 
+            function checkWin(player) {
+                const wins = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                return wins.some(combo => combo.every(i => board[i] === player));
+            }
+
+            function isBoardFull() {
+                return board.every(cell => cell !== "");
+            }
+
+            function aiMove() {
+                const emptyCells = board.map((c, i) => c === "" ? i : -1).filter(i => i !== -1);
+                if(emptyCells.length > 0) {
+                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    board[randomIndex] = "O";
+                    initBoard();
+                    if(checkWin("O")) {
+                        document.getElementById('g-status').innerText = "AI виграв! Ви програли " + currentBet + " STK";
+                        gameActive = false;
+                        cloud -= currentBet;
+                        upd();
+                    } else if(isBoardFull()) {
+                        document.getElementById('g-status').innerText = "Нічия!";
+                        gameActive = false;
+                    }
+                }
+            }
+
             function makeMove(i) {
+                if(!gameActive) return;
                 const bet = parseFloat(document.getElementById('game-bet').value);
-                if(isNaN(bet) || (cloud+loc) < bet) return alert("Ставка!");
-                if(board[i] != "") return;
+                if(isNaN(bet) || bet <= 0) return alert("Вкажіть ставку!");
+                if((cloud + loc) < bet) return alert("Недостатньо коштів!");
+                if(board[i] !== "") return;
+                
+                if(currentBet === 0) currentBet = bet;
                 
                 board[i] = "X";
-                if(!checkWin("X")) setTimeout(aiMove, 500);
+                initBoard();
+                
+                if(checkWin("X")) {
+                    document.getElementById('g-status').innerText = "Ви виграли! +' " + (bet * 2) + " STK";
+                    cloud += bet * 2;
+                    upd();
+                    gameActive = false;
+                } else if(isBoardFull()) {
+                    document.getElementById('g-status').innerText = "Нічия!";
+                    gameActive = false;
+                } else {
+                    setTimeout(aiMove, 500);
+                }
+            }
+
+            document.getElementById('reset-btn').onclick = () => {
+                board = ["", "", "", "", "", "", "", "", ""];
+                gameActive = true;
+                currentBet = 0;
+                document.getElementById('g-status').innerText = "Гра почата!";
+                initBoard();
+            };
+        };
+    </script>
+</body>
+</html>
