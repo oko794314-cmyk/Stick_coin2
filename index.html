@@ -37,7 +37,8 @@
         button:active { transform: scale(0.95); }
 
         /* Кнопка START/STOP */
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .m-btn:active { transform: scale(0.9); }
         .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 40px rgba(255,68,68,0.3); }
 
         /* Навігація */
@@ -118,13 +119,100 @@
 
             async function login(u, p, auto) {
                 try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} });
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
+                        headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
+                    });
                     db = await res.json();
                     
                     if (isReg) {
-                        if (db.users[u]) return alert("Логін зайнятий!");
-                        db.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
-                        await forceSync(); location.reload();
-                    } else if (db.users[u] && db.users[u].password == p) {
-                        cur = u; cloud = db.users[u].balance;
-                        localStorage.setItem
+                        if (db.record.users[u]) return alert("Логін зайнятий!");
+                        db.record.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
+                        await forceSync(); 
+                        location.reload();
+                    } else if (db.record.users[u] && db.record.users[u].password == p) {
+                        cur = u; 
+                        cloud = db.record.users[u].balance;
+                        localStorage.setItem('stk_u', u);
+                        localStorage.setItem('stk_p', p);
+                        initApp();
+                    } else {
+                        if (!auto) alert("Невірні дані!");
+                    }
+                } catch (e) {
+                    alert("Помилка підключення!");
+                    console.error(e);
+                }
+            }
+
+            async function forceSync() {
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                        method: 'PUT',
+                        headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                        body: JSON.stringify(db.record)
+                    });
+                } catch (e) {
+                    console.error("Sync error:", e);
+                }
+            }
+
+            function initApp() {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                document.getElementById('prof-id').innerText = cur.toUpperCase();
+                updateStats();
+                setupMining();
+                setupNav();
+            }
+
+            function updateStats() {
+                document.getElementById('stat-bal').innerText = cloud.toFixed(2);
+                document.getElementById('active-nodes').innerText = db.record.users[cur].active_nodes || 0;
+                document.getElementById('stat-speed').innerText = (isM ? '2x' : '0x');
+                document.getElementById('bal').innerText = cloud.toFixed(5);
+            }
+
+            function setupMining() {
+                const btn = document.getElementById('mbtn');
+                btn.onclick = () => {
+                    isM = !isM;
+                    btn.classList.toggle('active');
+                    document.getElementById('m-status').innerText = isM ? "⚡ MINING ACTIVE" : "SYSTEM READY";
+                    if (isM) startMining();
+                };
+            }
+
+            function setupNav() {
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.onclick = () => {
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+                        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+                        tab.classList.add('on');
+                        const viewId = 'v-' + tab.id.slice(2);
+                        document.getElementById(viewId).classList.add('on');
+                    };
+                });
+            }
+
+            function startMining() {
+                const interval = setInterval(() => {
+                    if (!isM) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    cloud += BASE_RATE;
+                    updateStats();
+                }, 1000);
+            }
+
+            function logout() {
+                localStorage.removeItem('stk_u');
+                localStorage.removeItem('stk_p');
+                location.reload();
+            }
+
+            window.logout = logout;
+        };
+    </script>
+</body>
+</html>
