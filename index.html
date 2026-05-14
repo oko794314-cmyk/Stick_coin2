@@ -3,95 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin | Minimal</title>
+    <title>Stick Coin</title>
     <style>
-        :root { --p: #07FF; --bg: #050505; --c: #111; --t: #eee; --g: #00ff88; --r: #ff4444; }
-        body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif; margin: 0; user-select: none; }
+        :root { --p: #07FF; --bg: #000; --c: #111; --t: #fff; }
+        body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; }
         
-        /* Auth Screen */
-        #auth { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .auth-box { width: 85%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 12px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--p); }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin: 5px 0; transition: 0.3s; }
-        .btn-p { background: var(--p); color: #000; }
+        /* Екран входу */
+        #auth { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .auth-box { width: 100%; max-width: 300px; text-align: center; }
         
-        /* Main UI */
-        .app { display: none; height: 100vh; flex-direction: column; }
-        .content { flex: 1; overflow-y: auto; padding: 25px; }
+        /* Головний інтерфейс */
+        #app { display: none; height: 100vh; flex-direction: column; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
         .page { display: none; }
         .active { display: block; }
         
-        /* Mining Styles */
-        .bal-wrap { text-align: center; margin: 40px 0; }
-        .bal-val { font-size: 3.5rem; font-weight: 800; font-family: monospace; color: var(--p); }
-        .m-btn { font-size: 1.2rem; height: 60px; border-radius: 30px; }
+        /* Елементи */
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px 0; }
+        .btn-p { background: var(--p); color: #000; }
         
-        /* Chat & Friends */
-        .item { background: var(--c); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #222; }
-        .chat-input { display: flex; gap: 10px; margin-top: 15px; }
-        .msg-box { height: 200px; overflow-y: auto; background: #000; border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 0.9rem; }
-        
-        /* Nav */
-        nav { background: #0a0a0a; display: flex; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom); }
-        .n-item { flex: 1; padding: 20px 0; text-align: center; color: #555; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-        .n-item.on { color: var(--p); box-shadow: inset 0 3px 0 var(--p); }
+        /* Навігація */
+        nav { display: flex; background: #0a0a0a; border-top: 1px solid #222; }
+        .n-btn { flex: 1; padding: 20px; text-align: center; font-size: 0.8rem; color: #555; cursor: pointer; }
+        .n-btn.on { color: var(--p); }
+
+        /* Чат */
+        .msg-area { height: 150px; background: #0a0a0a; border-radius: 8px; padding: 10px; overflow-y: auto; margin: 10px 0; border: 1px solid #222; font-size: 0.85rem; }
+        .item { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
+    <!-- ВХІД -->
     <div id="auth">
         <div class="auth-box">
-            <h1 onclick="auto()" style="cursor:pointer">STICK <span style="color:var(--p)">COIN</span></h1>
+            <h1 onclick="autoFill()" style="cursor:pointer">STICK <span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
             <button class="btn btn-p" onclick="login()">УВІЙТИ</button>
-            <p id="err" style="color:var(--r); font-size:0.8rem"></p>
+            <p id="err" style="color:red; font-size: 0.8rem;"></p>
         </div>
     </div>
 
-    <div id="app" class="app">
+    <!-- ДОДАТОК -->
+    <div id="app">
         <div class="content">
-            <!-- Mining -->
-            <div id="pg-mine" class="page active">
-                <div class="bal-wrap">
-                    <p style="color:#666; margin:0">ВАШ БАЛАНС</p>
-                    <div class="bal-val" id="v-bal">0.00000</div>
-                    <p style="font-size:0.8rem; color:var(--p)">STK</p>
+            <!-- Майнінг -->
+            <div id="p-mine" class="page active">
+                <div style="text-align:center; margin-top:50px">
+                    <p style="color:#666">БАЛАНС</p>
+                    <h1 id="v-bal" style="font-size:3rem; margin:10px 0">0.00000</h1>
+                    <button id="m-btn" class="btn" style="background:#00ff88; border-radius:30px; width:150px" onclick="toggleM()">СТАРТ</button>
+                    <p id="st" style="font-size:0.7rem; color:#444; margin-top:10px">Майнер зупинено</p>
                 </div>
-                <button id="m-btn" class="btn m-btn" style="background:var(--g)" onclick="toggleM()">СТАРТ</button>
-                <div id="st-info" style="text-align:center; margin-top:15px; color:#444; font-size:0.8rem">Майнер зупинено</div>
             </div>
 
-            <!-- Friends -->
-            <div id="pg-friends" class="page">
-                <h2>ДРУЗІ</h2>
+            <!-- Друзі -->
+            <div id="p-friends" class="page">
+                <h3>ДРУЗІ ТА ЧАТИ</h3>
                 <div class="item">
-                    <input type="text" id="f-find" placeholder="Логін друга">
-                    <button class="btn btn-p" onclick="addF()">Знайти та додати</button>
+                    <input type="text" id="find-u" placeholder="Логін друга">
+                    <button class="btn btn-p" onclick="addF()">Додати</button>
                 </div>
-                <div id="f-reqs"></div>
-                <div id="f-list"></div>
+                <div id="req-list"></div>
+                <div id="friend-list"></div>
             </div>
 
-            <!-- More (Info) -->
-            <div id="pg-more" class="page">
-                <h2>ІНФОРМАЦІЯ</h2>
+            <!-- Інше -->
+            <div id="p-more" class="page">
+                <h3>АКАУНТ</h3>
                 <div class="item">Юзер: <b id="i-u"></b></div>
                 <div class="item">Баланс: <b id="i-b"></b></div>
-                <div class="item">Друзів: <b id="i-f">0</b></div>
-                
-                <h3 style="margin-top:30px">НАЛАШТУВАННЯ</h3>
-                <input type="password" id="new-p" placeholder="Новий пароль">
-                <button class="btn" style="background:#222; color:#fff" onclick="updP()">Змінити пароль</button>
-                <button class="btn" style="background:var(--r); color:#fff; margin-top:20px" onclick="location.reload()">ВИЙТИ</button>
+                <div class="item">Друзів: <b id="i-f"></b></div>
+                <button class="btn" style="background:red; color:#fff" onclick="location.reload()">ВИЙТИ</button>
             </div>
         </div>
 
         <nav>
-            <div class="n-item" onclick="tab('friends', this)">ДРУЗІ</div>
-            <div class="n-item on" onclick="tab('mine', this)">МАЙНІНГ</div>
-            <div class="n-item" onclick="tab('more', this)">ІНШЕ</div>
+            <div class="n-btn" onclick="tab('friends', this)">ДРУЗІ</div>
+            <div class="n-btn on" onclick="tab('mine', this)">МАЙНІНГ</div>
+            <div class="n-btn" onclick="tab('more', this)">ІНШЕ</div>
         </nav>
     </div>
 
@@ -100,11 +92,14 @@
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     let cur = null, isM = false, loc = 0, cloud = 0, db = null;
 
-    function auto() { document.getElementById('u').value = "Svat_ferm"; document.getElementById('p').value = "17092012"; }
+    function autoFill() {
+        document.getElementById('u').value = "Svat_ferm";
+        document.getElementById('p').value = "17092012";
+    }
 
     async function login() {
-        const u = document.getElementById('u').value.trim();
-        const p = document.getElementById('p').value.trim();
+        const uIn = document.getElementById('u').value.trim();
+        const pIn = document.getElementById('p').value.trim();
         const err = document.getElementById('err');
         err.innerText = "⏳ Завантаження...";
 
@@ -113,28 +108,49 @@
             const res = await r.json();
             db = res.record ? res.record : res;
 
-            if(db.users[u] && String(db.users[u].password) === String(p)) {
-                cur = u;
-                cloud = db.users[u].balance || 0;
-                // Ремонт бази
-                if(!db.users[u].friends) db.users[u].friends = [];
-                if(!db.users[u].requests) db.users[u].requests = [];
-                if(!db.users[u].chats) db.users[u].chats = {};
+            if(db.users[uIn] && String(db.users[uIn].password) === String(pIn)) {
+                cur = uIn;
+                cloud = db.users[uIn].balance || 0;
+                
+                // Перевірка полів
+                if(!db.users[cur].friends) db.users[cur].friends = [];
+                if(!db.users[cur].requests) db.users[cur].requests = [];
+                if(!db.chats) db.chats = {};
 
                 document.getElementById('auth').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
-                updUI();
+                upd();
                 renderF();
-            } else { err.innerText = "❌ Невірні дані"; }
-        } catch(e) { err.innerText = "⚠️ Помилка мережі"; }
+            } else { err.innerText = "❌ Помилка входу"; }
+        } catch(e) { err.innerText = "⚠️ Сервер не відповідає"; }
     }
 
-    function tab(p, el) {
-        document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
-        document.querySelectorAll('.n-item').forEach(i => i.classList.remove('on'));
-        document.getElementById('pg-'+p).classList.add('active');
+    function tab(name, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('on'));
+        document.getElementById('p-'+name).classList.add('active');
         el.classList.add('on');
-        if(p === 'more') {
+        if(name === 'more') {
             document.getElementById('i-u').innerText = cur;
-            document.getElementById('i-b').innerText = (cloud + loc).toFixed(5) + " STK";
-            document.getElementById('i-f').innerText = db.users[cur].friends.leng
+            document.getElementById('i-b').innerText = (cloud + loc).toFixed(5);
+            document.getElementById('i-f').innerText = db.users[cur].friends.length;
+        }
+    }
+
+    function toggleM() {
+        isM = !isM;
+        const b = document.getElementById('m-btn');
+        if(isM) { b.innerText = "ПАУЗА"; b.style.background = "red"; tick(); }
+        else { b.innerText = "СТАРТ"; b.style.background = "#00ff88"; sync(); }
+    }
+
+    function tick() { if(isM) { loc += 0.00001; upd(); setTimeout(tick, 1000); } }
+    function upd() { document.getElementById('v-bal').innerText = (cloud + loc).toFixed(5); }
+
+    async function sync() {
+        document.getElementById('st').innerText = "⏳ Збереження...";
+        db.users[cur].balance += loc;
+        try {
+            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                body: JSON.strin
