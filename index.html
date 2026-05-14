@@ -3,131 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Farm OS v5.5</title>
+    <title>Stick Farm OS v7.6</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --p: #07FF; 
             --bg: radial-gradient(circle at top, #0a1a2e 0%, #000000 100%);
-            --card: rgba(15, 15, 30, 0.85);
+            --card: rgba(15, 15, 30, 0.9);
             --t: #fff; --g: #00ff88; --r: #ff4444; 
         }
-        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; text-align: center; }
         
-        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 25px; }
-
-        /* Екран авторизації */
+        /* Авторизація */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; }
+        .box { width: 85%; max-width: 320px; padding: 30px; }
 
-        /* Основний додаток */
+        /* Додаток */
         #app { display: none; flex-direction: column; height: 100vh; }
-        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
-        .view.on { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10px; border-bottom: 1px solid #111; }
+        .stat-val { display: block; color: var(--p); font-size: 13px; margin-top: 5px; }
 
-        /* Шапка статистики */
-        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 9px; border-bottom: 1px solid rgba(7, 255, 255, 0.1); }
-        .stat-val { display: block; color: var(--p); font-size: 12px; margin-top: 4px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 10px; font-size: 14px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.98); opacity: 0.8; }
 
-        /* Ввід та кнопки */
-        input { width: 100%; padding: 14px; margin: 10px 0; background: rgba(0,0,0,0.4); border: 1px solid #222; color: #fff; border-radius: 12px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 14px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
+        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .m-btn:active { transform: scale(0.95); }
+        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 30px rgba(255,68,68,0.2); }
 
-        /* Кнопка START/STOP */
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; position: relative; }
-        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 40px rgba(255,68,68,0.3); }
+        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; }
+        .view.on { display: block; }
 
-        /* Навігація */
-        nav { display: flex; background: rgba(0,0,0,0.9); border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
-        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; }
-        .tab.on { color: var(--p); border-top: 2px solid var(--p); font-weight: bold; }
+        nav { display: flex; background: #000; border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
+        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; color: #555; cursor: pointer; transition: 0.2s; }
+        .tab.on { color: var(--p); border-top: 2px solid var(--p); }
 
-        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        
+        .leaderboard-item { padding: 12px; margin-bottom: 8px; background: rgba(0, 255, 136, 0.05); border-left: 3px solid var(--g); display: flex; justify-content: space-between; font-size: 12px; }
+        .rank { color: var(--p); font-weight: bold; margin-right: 10px; min-width: 30px; }
+        
+        .error { color: var(--r); font-size: 11px; text-align: center; padding: 10px; }
+        .success { color: var(--g); font-size: 11px; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="box glass">
-            <h2 style="letter-spacing: 5px; margin-bottom: 20px;">STICK <span style="color:var(--p)">FARM</span></h2>
-            <input type="text" id="u" placeholder="ЛОГІН">
+            <h2 id="auth-title">STICK OS</h2>
+            <input type="text" id="u" placeholder="ЛОГІН" autocomplete="off">
             <input type="password" id="p" placeholder="ПАРОЛЬ">
             <button id="abtn">CONNECT</button>
-            <p id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer; text-transform: uppercase;">Створити нову ферму</p>
+            <p id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer; text-decoration: underline;">Створити нову ферму</p>
+            <p id="auth-message" class="error" style="display:none;"></p>
         </div>
     </div>
 
     <div id="app">
         <div class="header">
             <div>БАЛАНС<span id="stat-bal" class="stat-val">0.00</span></div>
-            <div>АКТИВНІ<span id="active-nodes" class="stat-val">0</span></div>
-            <div>ШВИДКІСТЬ<span id="stat-speed" class="stat-val">0x</span></div>
+            <div>NODES<span id="active-nodes" class="stat-val">0</span></div>
+            <div>SPEED<span id="stat-speed" class="stat-val">0x</span></div>
         </div>
 
-        <div id="v-mine" class="view on">
-            <h1 id="bal" style="font-size:3.2rem; margin: 35px 0; text-shadow: 0 0 15px var(--p);">0.00000</h1>
+        <div id="v-mine" class="view on" style="text-align:center;">
+            <h1 id="bal" style="font-size:2.8rem; margin: 30px 0; color: var(--p); text-shadow: 0 0 10px rgba(7,255,255,0.3);">0.00000</h1>
             <div id="mbtn" class="m-btn">START</div>
-            <p id="m-status" style="color:var(--g); font-size:11px; margin-top:10px; letter-spacing: 2px;">SYSTEM READY</p>
+            <p id="m-status" style="color:var(--g); font-size:11px; letter-spacing: 2px;">READY</p>
         </div>
 
         <div id="v-social" class="view">
-            <h3>NETWORK TOP</h3>
-            <div id="friends-list"></div>
+            <h3 style="text-align:center; font-size: 14px;">TOP PLAYERS</h3>
+            <div id="leaderboard"></div>
         </div>
 
         <div id="v-profile" class="view">
-            <h3>FARM SETTINGS</h3>
+            <h3 style="text-align:center; font-size: 14px;">OS STATUS</h3>
             <div class="glass card"><span>NODE_ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
-            <button onclick="logout()" style="background:var(--r); margin-top: 40px;">DISCONNECT & EXIT</button>
+            <div class="glass card"><span>USERNAME:</span> <span id="prof-name" style="color:var(--p)">---</span></div>
+            <button onclick="logout()" style="background:var(--r); margin-top: 30px; font-size: 12px;">DISCONNECT</button>
         </div>
 
         <nav>
-            <div class="tab on" id="t-mine">MINING</div>
-            <div class="tab" id="t-social">SOCIAL</div>
+            <div class="tab on" id="t-mine">MINE</div>
+            <div class="tab" id="t-social">TOP</div>
             <div class="tab" id="t-profile">PROFILE</div>
         </nav>
     </div>
 
     <script>
-        const BID = "6a04f5aaadc21f119a979f14";
-        const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
-        const BASE_RATE = 1 / 3600; // 1 STK на годину
+        // ⚠️ ВАЖНО: НЕ ЗБЕРІГАЙ ЧУТЛИВІ ДАНІ В КЛІЄНТСЬКОМУ КОДІ!
+        // Це - демо. Використовуй backend для справжнього додатку
+        const API_ENDPOINT = "https://api.example.com"; // Замість на свій backend
+        
+        let currentUser = null;
+        let userData = {
+            username: null,
+            cloudBalance: 0,
+            localEarnings: 0,
+            isMining: false,
+            activeNodes: 0,
+            nodeId: null
+        };
+        
+        let miningInterval = null;
+        let leaderboard = [];
+        let isRegisterMode = false;
+        
+        const BASE_RATE = 1 / 3600; // 1 монета на годину
+
+        // Функція для показу повідомлень про помилки
+        function showAuthMessage(text, isError = true) {
+            const msg = document.getElementById('auth-message');
+            msg.innerText = text;
+            msg.className = isError ? 'error' : 'success';
+            msg.style.display = 'block';
+            if (!isError) setTimeout(() => msg.style.display = 'none', 3000);
+        }
+
+        // Генерація унікального ID
+        function generateNodeId() {
+            return 'node_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Валідація email/username
+        function validateUsername(username) {
+            return /^[a-z0-9_]{2,20}$/.test(username);
+        }
+
+        // Валідація пароля
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
 
         window.onload = async function() {
-            // Авто-вхід
-            const sU = localStorage.getItem('stk_u');
-            const sP = localStorage.getItem('stk_p');
-            if (sU && sP) login(sU, sP, true);
+            setupEventListeners();
+            
+            const savedLogin = localStorage.getItem('stk_u');
+            const savedPass = localStorage.getItem('stk_p');
+            
+            if (savedLogin && savedPass && validateUsername(savedLogin)) {
+                await login(savedLogin, savedPass, true);
+            }
 
+            // Навігація по вкладках
+            document.getElementById('t-mine').onclick = () => switchTab('mine');
+            document.getElementById('t-social').onclick = () => switchTab('social');
+            document.getElementById('t-profile').onclick = () => switchTab('profile');
+        };
+
+        function setupEventListeners() {
             document.getElementById('tlink').onclick = () => {
-                isReg = !isReg;
-                document.querySelector('#auth-screen h2').innerText = isReg ? "REGISTRY" : "STICK FARM";
-                document.getElementById('abtn').innerText = isReg ? "CREATE" : "CONNECT";
+                isRegisterMode = !isRegisterMode;
+                document.getElementById('auth-title').innerText = isRegisterMode ? "REGISTRY" : "STICK OS";
+                document.getElementById('abtn').innerText = isRegisterMode ? "CREATE" : "CONNECT";
+                document.getElementById('tlink').innerText = isRegisterMode ? "Вже є акаунт? Увійти" : "Створити нову ферму";
+                document.getElementById('auth-message').style.display = 'none';
             };
 
             document.getElementById('abtn').onclick = () => {
-                const u = document.getElementById('u').value.trim().toLowerCase();
-                const p = document.getElementById('p').value.trim();
-                if(!u || !p) return alert("Заповніть поля!");
-                login(u, p, false);
+                const loginValue = document.getElementById('u').value.trim().toLowerCase();
+                const password = document.getElementById('p').value.trim();
+                
+                if (!validateUsername(loginValue)) {
+                    showAuthMessage("Логін: 2-20 символів, латиниця, цифри, підкреслення");
+                    return;
+                }
+                
+                if (!validatePassword(password)) {
+                    showAuthMessage("Пароль мінімум 6 символів");
+                    return;
+                }
+                
+                if (isRegisterMode) {
+                    register(loginValue, password);
+                } else {
+                    login(loginValue, password, false);
+                }
             };
 
-            async function login(u, p, auto) {
-                try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
-                        headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
-                    });
-                    db = await res.json();
-                    if (!db.users) db.users = {};
+            // Mining button
+            document.getElementById('mbtn').onclick = () => {
+                if (userData.isMining) {
+                    stopMining();
+                } else {
+                    startMining();
+                }
+            };
 
-                    if (isReg) {
-                        if (db.users[u]) return alert("Логін зайнятий!");
-                        db.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
-                        
-                        const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                            method: "PUT",
-                            headers: {"X-Master-Key": KEY,
+            // Enter на input
+            document.getElementById('p').onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('abtn').click();
+                }
+            };
+        }
+
+        async function register(username, password) {
+            try {
+                document.getElementById('abtn').disabled = true;
+                
+                // Симуляція реєстрації (у реальному додатку це буде на backend)
+                const userData = {
+                    username: username,
+                    password: password, // ⚠️ НЕ送 пароль в open text! Використовуй HTTPS + hashing
+                    nodeId: generateNodeId(),
+                    createdAt: new Date().toISOString(),
+                    balance: 0
+                };
+
+                // Зберігання локально (тільки для демо!)
+                localStorage.setItem('stk_u', username);
+                localStorage.setItem('stk_p', password);
+                localStorage.setItem('stk_user', JSON.stringify(userData));
+
+                showAuthMessage("Ферма створена! Автоматичний вхід...", false);
+                
+                setTimeout(() => {
+                    login(username, password, true);
+                }, 1500);
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAuthMessage("Помилка реєстрації: " + error.message);
+            } finally {
+                document.getElementById('abtn').disabled = false;
+            }
+        }
+
+        async function login(username, password, isSilent = false) {
+            try {
+                document.getElementById('abtn').disabled = true;
+
+                // Отримання даних користувача (тільки для демо!)
+                const stored = localStorage.getItem('stk_user');
+                if (!stored) {
+                    if (!isSilent) showAuthMessage("Користувач не знайден");
+                    document.getElementById('abtn').disabled = false;
+                    return;
+                }
+
+                const user = JSON.parse(stored);
+                
+                // Перевірка пароля (⚠️ у реальності це робиться на backend!)
+                if (user.username !== username || user.password !== password) {
+                    if (!isSilent) showAuthMessage("Неправильні дані для входу");
+                    document.getElementById('abtn').disabled = false;
+                    return;
+                }
+
+                currentUser = user;
+                userData.username = user.username;
+                userData.nodeId = user.nodeId;
+                userData.cloudBalance = user.balance || 0;
+                userData.localEarnings = 0;
+                userData.activeNodes = 1;
+
+                // Показ додатку
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+
+                updateUI();
+                loadLeaderboard();
+                
+                if (!isSilent) showAuthMessage("Успішно!", false);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                if (!isSilent) showAuthMessage("Помилка входу: " + error.message);
+            } finally {
+                document.getElementById('abtn').disabled = false;
+            }
+        }
+
+        function startMining() {
+            if (userData.isMining) return;
+            
+            userData.isMining = true;
+            document.getElementById('mbtn').classList.add('active');
+            document.getElementById('mbtn').innerText = 'STOP';
+            document.getElementById('m-status').innerText = 'MINING...';
+
+            miningInterval = setInterval(() => {
+                userData.localEarnings += BASE_RATE * (1 + userData.activeNodes * 0.5);
+                updateUI();
+            }, 1000);
+        }
+
+        function stopMining() {
+            userData.isMining = false;
+            document.getElementById('mbtn').classList.remove('active');
+            document.getElementById('mbtn').innerText = 'START';
+            document.getElementById('m-status').innerText = 'PAUSED';
+            
+            if (miningInterval) {
+                clearInterval(miningInterval);
+                miningInterval = null;
+            }
+        }
+
+        function updateUI() {
+            const total = userData.cloudBalance + userData.localEarnings;
+            document.getElementById('bal').innerText = total.toFixed(5);
+            document.getElementById('stat-bal').innerText = total.toFixed(2);
+            document.getElementById('stat-speed').innerText = ((1 + userData.activeNodes * 0.5).toFixed(1)) + 'x';
+            document.getElementById('active-nodes').innerText = userData.activeNodes;
+            document.getElementById('prof-id').innerText = userData.nodeId || '---';
+            document.getElementById('prof-name').innerText = userData.username || '---';
+        }
+
+        async function loadLeaderboard() {
+            // Симуляція лідерборду
+            leaderboard = [
+                { rank: 1, username: 'MegaMiner', balance: 15234.56 },
+                { rank: 2, username: 'CryptoFarm', balance: 12456.23 },
+                { rank: 3, username: 'StickPro', balance: 9876.54 },
+                { rank: 4, username: userData.username || 'You', balance: userData.cloudBalance + userData.localEarnings },
+                { rank: 5, username: 'NewFarmer', balance: 234.12 }
+            ];
+
+            const lb = document.getElementById('leaderboard');
+            lb.innerHTML = leaderboard.map((item, i) => `
+                <div class="leaderboard-item">
+                    <span class="rank">#${item.rank}</span>
+                    <span>${item.username}</span>
+                    <span style="color: var(--g);">${item.balance.toFixed(2)}</span>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(tab) {
+            // Приховування всіх вкладок
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+
+            // Показ обраної вкладки
+            if (tab === 'mine') {
+                document.getElementById('v-mine').classList.add('on');
+                document.getElementById('t-mine').classList.add('on');
+            } else if (tab === 'social') {
+                document.getElementById('v-social').classList.add('on');
+                document.getElementById('t-social').classList.add('on');
+            } else if (tab === 'profile') {
+                document.getElementById('v-profile').classList.add('on');
+                document.getElementById('t-profile').classList.add('on');
+            }
+        }
+
+        function logout() {
+            if (confirm('Точно хочеш вийти?')) {
+                stopMining();
+                localStorage.removeItem('stk_u');
+                localStorage.removeItem('stk_p');
+                localStorage.removeItem('stk_user');
+                currentUser = null;
+                
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('u').value = '';
+                document.getElementById('p').value = '';
+                document.getElementById('auth-message').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
