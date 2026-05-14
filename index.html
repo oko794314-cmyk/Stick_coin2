@@ -7,85 +7,53 @@
     <style>
         :root { --accent: #07FF; --bg: #0a0a0a; --card: #151515; --text: #ffffff; --nav: #1a1a1a; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
-        
-        .container { width: 100%; max-width: 450px; background: var(--card); position: relative; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-        
-        /* Екран входу */
+        .container { width: 100%; max-width: 450px; background: var(--card); position: relative; display: flex; flex-direction: column; }
         #auth-screen { padding: 40px 20px; text-align: center; height: 100%; justify-content: center; display: flex; flex-direction: column; }
-        
-        /* Контент */
         .content-area { flex-grow: 1; padding: 30px 20px; overflow-y: auto; padding-bottom: 90px; }
         .page { display: none; text-align: center; animation: fadeIn 0.3s; }
         .page.active { display: block; }
-
-        h1, h2 { color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
-        .balance-label { color: #7BEF; font-size: 0.9em; margin-top: 40px; }
-        .balance { font-size: 3.5em; font-family: 'Courier New', monospace; font-weight: bold; margin: 10px 0; text-shadow: 0 0 15px rgba(7, 255, 255, 0.3); }
-        
-        input { width: 100%; padding: 14px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; outline: none; font-size: 16px; }
-        input:focus { border-color: var(--accent); }
-        
-        button { width: 100%; padding: 14px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 10px; margin-top: 10px; transition: 0.2s; color: black; }
-        button:active { transform: scale(0.96); }
-
-        /* Навігація */
-        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: var(--nav); display: flex; border-top: 1px solid #333; z-index: 100; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #666; font-size: 0.75em; transition: 0.3s; }
-        .nav-item.active { color: var(--accent); background: rgba(7, 255, 255, 0.05); }
-        .nav-item svg { width: 26px; height: 26px; margin-bottom: 4px; fill: currentColor; }
-
-        .logout-btn { background: #2a1010; color: #ff4444; border: 1px solid #442222; margin-top: 40px; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        h1, h2 { color: var(--accent); letter-spacing: 1px; }
+        .balance { font-size: 3.5em; font-family: monospace; font-weight: bold; margin: 10px 0; }
+        input { width: 100%; padding: 14px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 10px; margin-top: 10px; color: black; }
+        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: var(--nav); display: flex; border-top: 1px solid #333; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #666; font-size: 0.75em; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Екран входу -->
         <div id="auth-screen">
-            <h1 id="logo-text">STICK FARM</h1>
-            <p style="color: #555; font-size: 0.8em; margin-bottom: 20px;">Введіть дані вашого вузла</p>
+            <h1>STICK FARM</h1>
             <input type="text" id="userIn" placeholder="Логін">
             <input type="password" id="passIn" placeholder="Пароль">
-            <button onclick="login()" id="loginBtn">УВІЙТИ В СИСТЕМУ</button>
+            <button onclick="login()" id="loginBtn">УВІЙТИ</button>
+            <p id="error-msg" style="color: #ff4444; font-size: 0.8em; margin-top: 15px;"></p>
         </div>
 
-        <!-- Головний інтерфейс -->
         <div id="main-ui" style="display: none; height: 100%;">
             <div class="content-area">
-                
-                <!-- Вкладка Головна -->
                 <div id="page-home" class="page active">
                     <h2 id="user-display">---</h2>
-                    <div class="balance-label">ДОСТУПНО COINS</div>
                     <div class="balance" id="balance-num">0.00000</div>
-                    <p style="color: #444; font-size: 0.75em;" id="sync-status">Синхронізація...</p>
+                    <p id="sync-status" style="color: #444; font-size: 0.8em;">Синхронізація...</p>
                 </div>
-
-                <!-- Вкладка Налаштування -->
                 <div id="page-settings" class="page">
-                    <h2>СЕРВІС</h2>
-                    <div style="text-align: left; margin-top: 30px;">
-                        <label style="font-size: 0.8em; color: #777; margin-left: 5px;">БЕЗПЕКА: НОВИЙ ПАРОЛЬ</label>
-                        <input type="password" id="newPass" placeholder="Мінімум 4 символи">
-                        <button onclick="changePassword()" style="background: none; border: 1px solid var(--accent); color: var(--accent);">ОНОВИТИ ПАРОЛЬ</button>
-                    </div>
-                    
-                    <button class="logout-btn" onclick="logout()">ВИЙТИ З АКАУНТА</button>
+                    <h2>НАЛАШТУВАННЯ</h2>
+                    <button onclick="logout()" style="background: #2a1010; color: #ff4444; margin-top: 40px;">ВИЙТИ</button>
                 </div>
-
             </div>
-
-            <!-- Таб-бар -->
             <div class="nav-bar">
                 <div class="nav-item active" onclick="switchTab('home', this)">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     <span>Головна</span>
                 </div>
                 <div class="nav-item" onclick="switchTab('settings', this)">
-                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                    <span>Налаштування</span>
+                    <svg viewBox="0 0 24 24"><path d="M12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <span>Сервіс</span>
                 </div>
             </div>
         </div>
@@ -95,11 +63,6 @@
     const BIN_ID = "6a04f5aaadc21f119a979f14";
     const MASTER_KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     let currentUser = null;
-
-    window.onload = () => {
-        const saved = localStorage.getItem("stick_user");
-        if (saved) { currentUser = saved; showMain(); }
-    };
 
     function switchTab(tab, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -112,12 +75,73 @@
         const u = document.getElementById("userIn").value.trim();
         const p = document.getElementById("passIn").value.trim();
         const btn = document.getElementById("loginBtn");
+        const err = document.getElementById("error-msg");
+
+        if(!u || !p) { err.innerText = "Введіть дані!"; return; }
         
-        if(!u || !p) return alert("Заповніть логін та пароль!");
-        
-        btn.innerText = "ПЕРЕВІРКА...";
-        btn.disabled = true;
+        btn.innerText = "З'ЄДНАННЯ...";
+        err.innerText = "";
 
         try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false"
+                headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false" }
+            });
+            
+            if (!res.ok) throw new Error("Сервер повернув помилку " + res.status);
+            
+            const data = await res.json();
+            console.log("Отримані дані:", data); // Для відладки в консолі
+
+            // ПЕРЕВІРКА СТРУКТУРИ (Шукаємо блок users)
+            let users = null;
+            if (data.users) users = data.users;
+            else if (data.record && data.record.users) users = data.record.users;
+
+            if (users && users[u]) {
+                if (users[u].password === p) {
+                    currentUser = u;
+                    localStorage.setItem("stick_user", u);
+                    showMain();
+                } else {
+                    err.innerText = "Невірний пароль!";
+                }
+            } else {
+                err.innerText = "Користувача '" + u + "' не знайдено!";
+            }
+        } catch (e) {
+            console.error(e);
+            err.innerText = "Помилка: " + e.message;
+        } finally {
+            btn.innerText = "УВІЙТИ";
+        }
+    }
+
+    function showMain() {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("main-ui").style.display = "block";
+        document.getElementById("user-display").innerText = currentUser.toUpperCase();
+        updateBalance();
+    }
+
+    async function updateBalance() {
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false" }
+            });
+            const data = await res.json();
+            const users = data.users || (data.record ? data.record.users : null);
+            if (users && users[currentUser]) {
+                document.getElementById("balance-num").innerText = users[currentUser].balance.toFixed(5);
+                document.getElementById("sync-status").innerText = "Оновлено: " + new Date().toLocaleTimeString();
+            }
+        } catch (e) {}
+    }
+
+    function logout() {
+        localStorage.removeItem("stick_user");
+        location.reload();
+    }
+
+    // Авто-вхід
+    window.onload = () => {
+        const saved = localStorage.getItem("stic
