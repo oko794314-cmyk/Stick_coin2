@@ -8,30 +8,19 @@
         :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
-        /* Авторизація */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
-        
-        /* Додаток */
         #app { display: none; flex-direction: column; height: 100vh; }
         .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
         .view.on { display: block; }
-        
         input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
         button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
-        
-        /* Майнінг */
         .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 30px auto; display: block; font-weight: 900; }
         .m-btn.active { border-color: var(--r); color: var(--r); }
-        
-        /* Меню */
         nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
         .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 11px; color: #444; cursor: pointer; }
         .tab.on { color: var(--p); border-top: 2px solid var(--p); }
-        
         .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
-        #amsg { margin-top: 10px; font-size: 12px; color: var(--p); min-height: 1.2em; }
     </style>
 </head>
 <body>
@@ -41,9 +30,9 @@
             <h1 id="atitle">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button id="abtn">УВІЙТИ</button>
-            <div id="amsg"></div>
-            <div id="tlink" style="margin-top:20px; font-size:12px; color:#555; cursor:pointer;">Створити новий акаунт</div>
+            <button id="abtn" onclick="handleAuth()">УВІЙТИ</button>
+            <div id="amsg" style="margin-top:10px; font-size:12px; color:var(--p);"></div>
+            <div id="tlink" onclick="toggleMode()" style="margin-top:20px; font-size:12px; color:#555; cursor:pointer;">Створити акаунт</div>
         </div>
     </div>
 
@@ -51,93 +40,90 @@
         <div style="padding:10px; text-align:center; font-size:10px; color:#444; border-bottom: 1px solid #111;">
             USER: <span id="utag" style="color:var(--p)">---</span>
         </div>
-
         <div class="view on" id="v-mine">
             <div style="text-align:center;">
                 <h1 id="bal" style="font-size:3.5rem; margin:20px 0; font-family:monospace;">0.00000</h1>
-                <button id="m-btn" class="m-btn">START</button>
+                <button id="m-btn" class="m-btn" onclick="toggleMining()">START</button>
                 <p id="m-status" style="color:#444">READY</p>
             </div>
         </div>
-
-        <div class="view" id="v-top">
-            <h2 style="text-align:center;">TOP HOLDERS</h2>
-            <div id="top-list"></div>
-        </div>
-
+        <div class="view" id="v-top"><h2 style="text-align:center;">TOP HOLDERS</h2><div id="top-list"></div></div>
         <div class="view" id="v-tx">
             <h2 style="text-align:center;">SEND COINS</h2>
             <div class="card">
                 <input type="text" id="tx-to" placeholder="Логін отримувача">
                 <input type="number" id="tx-amt" placeholder="Кількість">
-                <button id="sendBtn" style="background:var(--g)">SEND</button>
+                <button onclick="sendCoins()" style="background:var(--g)">SEND</button>
             </div>
         </div>
-
         <nav>
-            <div class="tab on" data-v="mine">MINE</div>
-            <div class="tab" data-v="top">TOP</div>
-            <div class="tab" data-v="tx">SEND</div>
-            <div id="exitBtn" class="tab" style="color:var(--r)">EXIT</div>
+            <div class="tab on" onclick="showTab('mine', this)">MINE</div>
+            <div class="tab" onclick="showTab('top', this)">TOP</div>
+            <div class="tab" onclick="showTab('tx', this)">SEND</div>
+            <div class="tab" onclick="location.reload()" style="color:var(--r)">EXIT</div>
         </nav>
     </div>
 
     <script>
-        (function() {
-            // КОНФІГУРАЦІЯ
-            const BID = "6a04f5aaadc21f119a979f14";
-            const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+        const BID = "6a04f5aaadc21f119a979f14";
+        const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-            let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
+        // 1. Авторизація
+        async function handleAuth() {
+            const u = document.getElementById('u').value.trim().toLowerCase();
+            const p = document.getElementById('p').value.trim();
+            const msg = document.getElementById('amsg');
+            if (!u || !p) return alert("Заповни поля!");
 
-            const abtn = document.getElementById('abtn');
-            const amsg = document.getElementById('amsg');
-            const tlink = document.getElementById('tlink');
-            const mbtn = document.getElementById('m-btn');
+            msg.innerText = "⏳ З'єднання...";
+            try {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?nocache=${Math.random()}`, {
+                    headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
+                });
+                db = await res.json();
 
-            // Реєстрація / Вхід
-            tlink.onclick = () => {
-                isReg = !isReg;
-                document.getElementById('atitle').innerHTML = isReg ? "REGISTRY" : "STICK<span style='color:var(--p)'>COIN</span>";
-                abtn.innerText = isReg ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
-                tlink.innerText = isReg ? "Вже є акаунт? Увійти" : "Створити новий акаунт";
-            };
+                if (isReg) {
+                    if (db.users[u]) return alert("Логін зайнятий!");
+                    db.users[u] = { password: p, balance: 1.0 };
+                    await sync();
+                    alert("Готово! Тепер увійди.");
+                    toggleMode();
+                } else {
+                    if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
+                        cur = u;
+                        cloud = db.users[u].balance || 0;
+                        document.getElementById('utag').innerText = u.toUpperCase();
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('app').style.display = 'flex';
+                        updUI();
+                    } else alert("Невірні дані!");
+                }
+            } catch (e) { alert("Помилка: " + e.message); }
+            msg.innerText = "";
+        }
 
-            // Головна кнопка входу
-            abtn.onclick = async () => {
-                const u = document.getElementById('u').value.trim().toLowerCase();
-                const p = document.getElementById('p').value.trim();
-                if (!u || !p) return alert("Заповни поля!");
+        function toggleMode() {
+            isReg = !isReg;
+            document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
+            document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
+            document.getElementById('tlink').innerText = isReg ? "Вже є акаунт?" : "Створити акаунт";
+        }
 
-                amsg.innerText = "⏳ З'єднання...";
-                try {
-                    // Захист від кешу через додавання випадкового параметра до URL
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?c=${Math.random()}`, {
-                        headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
-                    });
-                    db = await res.json();
+        // 2. Майнінг
+        function toggleMining() {
+            isM = !isM;
+            const btn = document.getElementById('m-btn');
+            btn.innerText = isM ? "STOP" : "START";
+            btn.classList.toggle('active', isM);
+            if (isM) loop(); else sync();
+        }
 
-                    if (isReg) {
-                        if (db.users[u]) return alert("Логін зайнятий!");
-                        db.users[u] = { password: p, balance: 1.0 };
-                        await sync();
-                        alert("Акаунт створено!");
-                        tlink.onclick();
-                    } else {
-                        // Перевірка даних
-                        if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
-                            cur = u;
-                            cloud = db.users[u].balance || 0;
-                            document.getElementById('utag').innerText = u.toUpperCase();
-                            document.getElementById('auth-screen').style.display = 'none';
-                            document.getElementById('app').style.display = 'flex';
-                            updateUI();
-                        } else alert("Помилка входу!");
-                    }
-                } catch (e) { alert("Помилка: " + e.message); }
-                amsg.innerText = "";
-            };
+        function loop() { if (isM) { loc += 0.00004; updUI(); setTimeout(loop, 1000); } }
+        function updUI() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
-            // Майнінг
-            mbtn.onclick = () => {
-                isM
+        async function sync() {
+            document.getElementById('m-status').innerText = "⏳ SAVING...";
+            db.users[cur].balance = cloud + loc;
+            try {
+                await fetch(`https://api.jsonb
