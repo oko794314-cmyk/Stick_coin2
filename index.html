@@ -3,99 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin</title>
+    <title>Stick Coin Pro</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { background: #151515; padding: 30px; border-radius: 20px; max-width: 380px; margin: auto; border: 1px solid #333; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #07FF; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; color: black; margin-top: 10px; }
-        #status { font-size: 0.8em; margin-top: 20px; color: #ff4444; font-family: monospace; }
-        .page { display: none; }
-        .active { display: block; }
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; background: #111; border-top: 1px solid #333; }
-        .nav-btn { flex: 1; padding: 20px; cursor: pointer; color: #666; }
-        .nav-btn.active { color: #07FF; }
+        :root { --accent: #07FF; --bg: #0a0a0a; --card: #151515; --text: #fff; --green: #00ff88; --red: #ff4444; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        .container { width: 100%; max-width: 450px; height: 100vh; margin: auto; background: var(--card); position: relative; display: flex; flex-direction: column; }
+        
+        /* Auth & Forms */
+        .screen { display: none; height: 100%; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .active-screen { display: flex; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px 0; transition: 0.2s; }
+        .btn-main { background: var(--accent); color: #000; }
+        
+        /* UI Elements */
+        .page { display: none; flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
+        .page.active { display: block; }
+        .balance-big { font-size: 3.5em; font-family: monospace; color: var(--accent); margin: 20px 0; }
+        
+        /* Friends & Chat */
+        .list-item { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
+        .req-box { background: #222; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed var(--accent); }
+        
+        /* Navigation */
+        .nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: #111; display: flex; border-top: 1px solid #333; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7em; color: #666; cursor: pointer; }
+        .nav-item.active { color: var(--accent); background: #1a1a1a; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="box">
-        <h1 style="color:#07FF">STICK COIN</h1>
-        <input type="text" id="u" placeholder="Логін (Svat_ferm)">
-        <input type="password" id="p" placeholder="Пароль">
-        <button onclick="doLogin()">УВІЙТИ</button>
-        <div id="status"></div>
+<div class="container">
+    <!-- Екран входу -->
+    <div id="auth-screen" class="screen active-screen">
+        <h1 style="color:var(--accent); text-align:center">STICK COIN</h1>
+        <input type="text" id="uIn" placeholder="Логін">
+        <input type="password" id="pIn" placeholder="Пароль">
+        <button class="btn btn-main" onclick="login()">УВІЙТИ</button>
+        <p id="auth-err" style="color:var(--red); font-size:0.8em; text-align:center"></p>
     </div>
 
-    <div id="main-ui" style="display:none">
-        <div id="page-1" class="page active">
-            <h2 style="color:#07FF">БАЛАНС</h2>
-            <div style="font-size: 3em; font-family: monospace; margin: 20px 0;" id="bal">0.00000</div>
-            <button id="mBtn" onclick="toggleM()" style="background:#00ff88">ПОЧАТИ МАЙНІНГ</button>
-            <p id="st-text" style="color:#666; margin-top:20px;">Статус: Готовий</p>
+    <!-- Головний інтерфейс -->
+    <div id="main-ui" class="screen">
+        <div id="p-mine" class="page active">
+            <h2 style="text-align:center">МАЙНІНГ</h2>
+            <div style="text-align:center">
+                <div class="balance-big" id="bal">0.00000</div>
+                <button id="mBtn" class="btn" style="background:var(--green); font-size:1.2em" onclick="toggleM()">ПОЧАТИ</button>
+                <p id="st-text" style="color:#666">Статус: Готовий</p>
+            </div>
         </div>
-        
-        <div id="page-2" class="page"><h2>ДРУЗІ</h2><p>Список порожній</p></div>
-        <div id="page-3" class="page"><h2>ІНФО</h2><p>Stick Coin v2.0</p></div>
+
+        <div id="p-friends" class="page">
+            <h2>ДРУЗІ</h2>
+            <div class="req-box">
+                <input type="text" id="friendName" placeholder="Логін друга">
+                <button class="btn btn-main" onclick="sendRequest()">Додати в друзі</button>
+            </div>
+            <div id="incoming-reqs"></div>
+            <div id="friends-list"></div>
+        </div>
+
+        <div id="p-info" class="page">
+            <h2>ПРО АКАУНТ</h2>
+            <div class="list-item"><span>Логін:</span> <b id="info-login"></b></div>
+            <div class="list-item"><span>Баланс:</span> <b id="info-bal" style="color:var(--accent)"></b></div>
+            <div class="list-item"><span>Пристрій:</span> <b>Web / M5Stick</b></div>
+            
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0">
+            <h3>БЕЗПЕКА</h3>
+            <input type="password" id="newPass" placeholder="Новий пароль">
+            <button class="btn" style="background:#444; color:#fff" onclick="changePass()">Змінити пароль</button>
+            <button class="btn" style="background:var(--red); color:#fff; margin-top:20px" onclick="logout()">ВИЙТИ З АКАУНТУ</button>
+        </div>
 
         <div class="nav">
-            <div class="nav-btn" onclick="tab(2)">Друзі</div>
-            <div class="nav-btn active" id="t1" onclick="tab(1)">Майнінг</div>
-            <div class="nav-btn" onclick="tab(3)">Інфо</div>
+            <div class="nav-item" onclick="tab('friends', this)">Друзі</div>
+            <div class="nav-item active" id="def-nav" onclick="tab('mine', this)">Майнінг</div>
+            <div class="nav-item" onclick="tab('info', this)">Інфо</div>
         </div>
     </div>
+</div>
 
 <script>
     const BIN_ID = "6a04f5aaadc21f119a979f14";
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    let user = null, isM = false, loc = 0, cloud = 0;
+    let currentUser = null, isM = false, loc = 0, cloud = 0, fullData = null;
 
-    async function doLogin() {
-        const uIn = document.getElementById('u').value.trim();
-        const pIn = document.getElementById('p').value.trim();
-        const stat = document.getElementById('status');
-
-        stat.style.color = "white";
-        stat.innerText = "⏳ Перевірка даних...";
-
+    async function login() {
+        const u = document.getElementById('uIn').value.trim();
+        const p = document.getElementById('pIn').value.trim();
+        const err = document.getElementById('auth-err');
+        
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
-            });
-            const d = await r.json();
-            const users = d.users || (d.record ? d.record.users : null);
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
+            fullData = await r.json();
+            const users = fullData.users;
 
-            if (users && users[uIn] && String(users[uIn].password) === String(pIn)) {
-                user = uIn;
-                cloud = users[uIn].balance || 0;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'block';
+            if(users[u] && String(users[u].password) === String(p)) {
+                currentUser = u;
+                cloud = users[u].balance || 0;
+                document.getElementById('auth-screen').classList.remove('active-screen');
+                document.getElementById('main-ui').classList.add('active-screen');
                 upd();
-            } else {
-                stat.style.color = "#ff4444";
-                stat.innerText = "❌ Помилка: Невірний логін або пароль";
-            }
-        } catch (e) {
-            stat.style.color = "#ff4444";
-            stat.innerText = "⚠️ Помилка мережі: " + e.message;
-        }
+                loadFriends();
+            } else { err.innerText = "❌ Помилка входу"; }
+        } catch(e) { err.innerText = "⚠️ Сервер не відповідає"; }
     }
 
-    function tab(n) {
+    function tab(name, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('page-'+n).classList.add('active');
-        if(n===1) document.getElementById('t1').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('p-'+name).classList.add('active');
+        el.classList.add('active');
+        if(name === 'info') {
+            document.getElementById('info-login').innerText = currentUser;
+            document.getElementById('info-bal').innerText = (cloud + loc).toFixed(5) + " STK";
+        }
     }
 
     function toggleM() {
         isM = !isM;
         const b = document.getElementById('mBtn');
         if(isM) {
-            b.innerText = "ЗУПИНИТИ"; b.style.background = "#ff4444";
+            b.innerText = "ЗУПИНИТИ"; b.style.background = "var(--red)";
             loop();
         } else {
-            b.innerText = "ПОЧАТИ МАЙНІНГ"; b.style.background = "#00ff88";
+            b.innerText = "ПОЧАТИ"; b.style.background = "var(--green)";
             sync();
         }
     }
@@ -104,21 +138,4 @@
     function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
     async function sync() {
-        document.getElementById('st-text').innerText = "⏳ Збереження...";
-        try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {headers:{"X-Master-Key": KEY, "X-Bin-Meta": "false"}});
-            let d = await r.json();
-            let root = d.record ? d.record : d;
-            root.users[user].balance += loc;
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: "PUT",
-                headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                body: JSON.stringify(root)
-            });
-            cloud += loc; loc = 0; upd();
-            document.getElementById('st-text').innerText = "✅ Збережено";
-        } catch (e) { document.getElementById('st-text').innerText = "❌ Помилка"; }
-    }
-</script>
-</body>
-</html>
+        document.get
