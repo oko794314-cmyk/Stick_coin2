@@ -69,7 +69,6 @@
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
         let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-        // 1. Авторизація
         async function handleAuth() {
             const u = document.getElementById('u').value.trim().toLowerCase();
             const p = document.getElementById('p').value.trim();
@@ -84,7 +83,7 @@
                 db = await res.json();
 
                 if (isReg) {
-                    if (db.users[u]) return alert("Логін зайнятий!");
+                    if (db.users[u]) return alert("Логін вже зайнятий!");
                     db.users[u] = { password: p, balance: 1.0 };
                     await sync();
                     alert("Готово! Тепер увійди.");
@@ -97,9 +96,9 @@
                         document.getElementById('auth-screen').style.display = 'none';
                         document.getElementById('app').style.display = 'flex';
                         updUI();
-                    } else alert("Невірні дані!");
+                    } else alert("Логін або пароль невірні!");
                 }
-            } catch (e) { alert("Помилка: " + e.message); }
+            } catch (e) { alert("Помилка мережі: " + e.message); }
             msg.innerText = "";
         }
 
@@ -110,7 +109,6 @@
             document.getElementById('tlink').innerText = isReg ? "Вже є акаунт?" : "Створити акаунт";
         }
 
-        // 2. Майнінг
         function toggleMining() {
             isM = !isM;
             const btn = document.getElementById('m-btn');
@@ -126,4 +124,4 @@
             document.getElementById('m-status').innerText = "⏳ SAVING...";
             db.users[cur].balance = cloud + loc;
             try {
-                await fetch(`https://api.jsonb
+                await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
