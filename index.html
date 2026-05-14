@@ -3,77 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin Fix</title>
+    <title>Stick Coin | Pro Edition</title>
     <style>
-        :root { --p: #07FF; --bg: #000; --c: #111; --t: #fff; }
-        body { background: var(--bg); color: var(--t); font-family: sans-serif; text-align: center; padding: 20px; }
-        input { width: 80%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; }
-        button { width: 85%; padding: 12px; background: var(--p); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .card { background: var(--c); padding: 15px; border-radius: 12px; margin: 10px auto; max-width: 300px; border: 1px solid #333; }
-        #app { display: none; }
+        :root {
+            --p: #07FF; /* Основний блакитний */
+            --bg: #050505;
+            --card: rgba(25, 25, 25, 0.8);
+            --t: #fff;
+            --g: #00ff88;
+            --r: #ff4444;
+        }
+
+        body {
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
+            color: var(--t);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Екран входу */
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: 0.5s;
+        }
+
+        .auth-box {
+            width: 85%;
+            max-width: 350px;
+            padding: 30px;
+            background: var(--card);
+            border: 1px solid #222;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(7, 255, 255, 0.1);
+        }
+
+        /* Основний додаток */
+        #app {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #111;
+        }
+
+        .view {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.on { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Елементи дизайну */
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--p); box-shadow: 0 0 10px rgba(7, 255, 255, 0.2); }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-main { background: var(--p); color: #000; box-shadow: 0 4px 15px rgba(7, 255, 255, 0.3); }
+        .btn-mine { background: var(--g); color: #000; font-size: 1.2rem; }
+        .btn-stop { background: var(--r); color: #fff; }
+
+        /* Навігація */
+        nav {
+            display: flex;
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 1px solid #222;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tab.on { color: var(--p); }
+        .tab svg { width: 24px; height: 24px; margin: 0 auto; fill: currentColor; }
+
+        /* Таблиця топів */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .top-row:last-child { border: none; }
+        .rank { width: 30px; color: var(--p); font-weight: bold; }
+        .name { flex: 1; margin-left: 10px; }
+        .amt { font-family: monospace; color: var(--g); }
     </style>
 </head>
 <body>
 
-    <div id="auth">
-        <h1>STICK<span style="color:var(--p)">COIN</span></h1>
-        <div class="card">
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1 style="margin:0 0 20px 0">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button onclick="login()">УВІЙТИ</button>
-            <p id="err" style="color:red; font-size:12px"></p>
+            <button class="btn-main" onclick="login()">Увійти в систему</button>
+            <p id="err" style="color:var(--r); font-size:12px; margin-top:15px"></p>
         </div>
     </div>
 
     <div id="app">
-        <p>БАЛАНС</p>
-        <h1 id="bal" style="color:var(--p); font-size:3rem">0.00000</h1>
-        <button id="m-btn" style="background:#00ff88" onclick="mine()">МАЙНИТИ</button>
-        <div class="card" id="top"></div>
-        <button style="background:red; margin-top:20px" onclick="location.reload()">ВИХІД</button>
-    </div>
+        <div class="header">SYSTEM <span style="color:var(--p)">OS 2.0</span></div>
 
-<script>
-    const BID = "6a04f5aaadc21f119a979f14";
-    const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    let db, cur, cloud = 0, loc = 0;
+        <!-- МАЙНІНГ -->
+        <div class="view on" id="v-mine">
+            <div style="text-align: center; margin-top: 30px;">
+                <div class="card" style="display:inline-block; padding: 10px 25px; border-radius: 50px; font-size: 12px; color: var(--p); border-color: var(--p);">
+                    LIVE CLOUD BALANCE
+                </div>
+                <h1 id="bal" style="font-size: 3.5rem; margin: 20px 0; font-family: monospace; text-shadow: 0 0 20px rgba(7, 255, 255, 0.3);">0.00000</h1>
+                
+                <div style="margin: 40px 0;">
+                    <button id="m-btn" class="btn-mine" style="width: 200px; height: 200px; border-radius: 100px; border: 8px solid rgba(0,255,136,0.2);" onclick="toggleM()">START</button>
+                </div>
+                
+                <p id="st-info" style="color:#555; font-size: 12px;">Очікування команди...</p>
+            </div>
+        </div>
 
-    async function login() {
-        const u = document.getElementById('u').value.trim();
-        const p = document.getElementById('p').value.trim();
-        const err = document.getElementById('err');
-        err.innerText = "⏳ Завантаження...";
-
-        try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
-                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
-            });
+        <!-- ТОП ТА МАРКЕТ -->
+        <div class="view" id="v-top">
+            <h3 style="margin-bottom:15px">HOLDERS <span style="color:var(--p)">TOP 5</span></h3>
+            <div class="card" id="top-list">Завантаження даних...</div>
             
-            if (!r.ok) throw new Error("Помилка ключа або ID");
-            
-            db = await r.json();
-            // Перевірка на record (іноді JSONBin додає цю обгортку)
-            let data = db.record ? db.record : db;
+            <h3 style="margin: 25px 0 15px 0">TRANSFER</h3>
+            <div class="card">
+                <input type="text" id="tx-to" placeholder="Логін отримувача">
+                <input type="number" id="tx-amount" placeholder="Кількість STK">
+                <button class="btn-main" onclick="sendSTK()">Відправити монети</button>
+            </div>
+        </div>
 
-            if (data.users[u] && String(data.users[u].password) === String(p)) {
-                cur = u;
-                cloud = data.users[u].balance || 0;
-                document.getElementById('auth').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-                document.getElementById('bal').innerText = cloud.toFixed(5);
-            } else {
-                err.innerText = "❌ Невірний логін або пароль";
-            }
-        } catch (e) {
-            err.innerText = "⚠️ Помилка з'єднання: " + e.message;
-            console.error(e);
-        }
-    }
-
-    function mine() {
-        loc += 0.0001;
-        document.getElementById('bal').innerText = (cloud + loc).toFixed(5);
-    }
-</script>
-</body>
-</html>
+        <!-- НАЛАШТУВАННЯ -->
+        <div class="view" id="v-settings">
+            <h3 style="margin-bottom:15px">ACCOUNT</h3>
+            <div class="card">
+                <p style="margin:0; color:#666; font-size:12px">Користувач</p>
+                <p id="my-name" style="margin:5px 0 0 0; font-size:1.2rem; font-weight:bold"></p>
+            </div>
+            <div class
