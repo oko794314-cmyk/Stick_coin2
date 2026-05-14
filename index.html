@@ -3,68 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin Pro</title>
+    <title>Stick Coin OS</title>
     <style>
-        :root { --p: #07FF; --bg: #000; --c: #111; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        .box { width: 100%; max-width: 300px; text-align: center; background: var(--c); padding: 20px; border-radius: 15px; border: 1px solid #333; }
-        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 100; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
-        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
-        #app-ui { display: none; flex-direction: column; height: 100vh; }
-        .page { display: none; flex: 1; padding: 20px; overflow-y: auto; }
-        .active { display: block; }
-        .nav { display: flex; background: #0a0a0a; border-top: 1px solid #333; }
-        .nav div { flex: 1; padding: 15px; text-align: center; font-size: 11px; color: #555; cursor: pointer; }
-        .nav .on { color: var(--p); font-weight: bold; }
-        .item { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; border: 1px solid #222; }
-        .chat-area { height: 120px; background: #000; border-radius: 8px; padding: 8px; overflow-y: auto; margin: 10px 0; font-size: 12px; border: 1px solid #333; }
+        :root { --p: #07FF; --bg: #050505; --c: #111; --t: #eee; --g: #00ff88; --r: #ff4444; --b: #1a1a1a; }
+        body { background: var(--bg); color: var(--t); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        
+        /* Auth */
+        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .auth-box { width: 85%; max-width: 320px; text-align: center; }
+        
+        /* Layout */
+        #app { display: none; height: 100vh; flex-direction: column; }
+        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
+        .view.on { display: block; }
+        
+        /* Elements */
+        input { width: 100%; padding: 14px; margin: 8px 0; background: var(--b); border: 1px solid #333; color: #fff; border-radius: 12px; box-sizing: border-box; outline: none; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-p { background: var(--p); color: #000; }
+        
+        /* Cards */
+        .card { background: var(--c); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #222; }
+        .bal-val { font-size: 3rem; font-weight: 800; font-family: monospace; color: var(--p); margin: 10px 0; }
+        
+        /* Top List & Trans */
+        .list-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .list-item:last-child { border: none; }
+        
+        /* Nav */
+        nav { display: flex; background: #0a0a0a; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom); }
+        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; font-weight: bold; color: #555; cursor: pointer; text-transform: uppercase; }
+        .tab.on { color: var(--p); box-shadow: inset 0 3px 0 var(--p); }
+        
+        .badge { background: var(--p); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div class="box">
-            <h1 onclick="fill()" style="cursor:pointer">STICK <span style="color:var(--p)">COIN</span></h1>
+        <div class="auth-box">
+            <h1 onclick="fill()" style="cursor:pointer; letter-spacing:-1px">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button style="width:100%" onclick="login()">УВІЙТИ</button>
-            <p id="msg" style="font-size:12px; color: gray; margin-top: 10px;"></p>
+            <button class="btn btn-p" onclick="login()">УВІЙТИ В СИСТЕМУ</button>
+            <p id="msg" style="font-size:12px; color:#555; margin-top:15px"></p>
         </div>
     </div>
 
-    <div id="app-ui">
-        <!-- МАЙНІНГ -->
-        <div id="p-mine" class="page active" style="text-align:center">
-            <p style="color:#666; margin-top:40px">БАЛАНС</p>
-            <h1 id="bal" style="font-size: 3rem; font-family: monospace;">0.00000</h1>
-            <button id="m-btn" style="background:var(--g); width:150px; border-radius:30px" onclick="toggleM()">СТАРТ</button>
-            <p id="st-info" style="font-size:10px; color:#444; margin-top:10px">Система онлайн</p>
-        </div>
-
-        <!-- ДРУЗІ -->
-        <div id="p-friends" class="page">
-            <h3>ДРУЗІ ТА ЧАТИ</h3>
-            <div class="item">
-                <input type="text" id="f-find" placeholder="Логін друга" style="margin:0">
-                <button onclick="addF()" style="width:100%; margin-top:10px">ДОДАТИ</button>
+    <div id="app">
+        <!-- Main Mining -->
+        <div class="view on" id="v-mine">
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="color:#666; font-size:12px">TOTAL BALANCE <span class="badge">LIVE</span></p>
+                <div class="bal-val" id="bal">0.00000</div>
+                <div class="card" style="display:inline-block; padding: 5px 15px; font-size:12px; color:var(--g)">
+                    ● Multi-Mining Active
+                </div>
+                <div style="margin-top:30px">
+                    <button id="m-btn" class="btn" style="background:var(--g); width:200px; border-radius:30px" onclick="toggleM()">START MINING</button>
+                </div>
             </div>
-            <div id="req-list"></div>
-            <div id="f-list"></div>
         </div>
 
-        <!-- ІНШЕ -->
-        <div id="p-more" class="page">
-            <h3>АКАУНТ</h3>
-            <div class="item">Логін: <b id="i-u"></b></div>
-            <div class="item">Баланс: <b id="i-b"></b></div>
-            <button style="background:var(--r); color:#fff; width:100%" onclick="location.reload()">ВИЙТИ</button>
+        <!-- Social & Market -->
+        <div class="view" id="v-social">
+            <h3 style="color:var(--p)">TOP HOLDERS</h3>
+            <div class="card" id="top-list">Завантаження...</div>
+            
+            <h3 style="color:var(--p)">TRANSACTION</h3>
+            <div class="card">
+                <input type="text" id="tx-to" placeholder="Кому (логін)">
+                <input type="number" id="tx-amount" placeholder="Сума STK">
+                <button class="btn btn-p" onclick="sendSTK()">ВІДПРАВИТИ</button>
+            </div>
         </div>
 
-        <nav class="nav">
-            <div id="n-mine" class="on" onclick="tab('mine')">МАЙНІНГ</div>
-            <div id="n-friends" onclick="tab('friends')">ДРУЗІ</div>
-            <div id="n-more" onclick="tab('more')">ІНШЕ</div>
+        <!-- System -->
+        <div class="view" id="v-sys">
+            <h3 style="color:var(--p)">HARDWARE</h3>
+            <div class="card">
+                <div style="display:flex; justify-content:space-between">
+                    <span>M5Stick Connection</span>
+                    <span style="color:var(--g)">Connected</span>
+                </div>
+            </div>
+            <h3 style="color:var(--p)">ACCOUNT</h3>
+            <div class="card">User: <b id="i-u"></b></div>
+            <div class="card">Session ID: <small id="i-session"></small></div>
+            <button class="btn" style="background:var(--r); color:#fff; margin-top:20px" onclick="location.reload()">LOGOUT</button>
+        </div>
+
+        <nav>
+            <div class="tab" onclick="tab('social', this)">MARKET</div>
+            <div class="tab on" onclick="tab('mine', this)">MINING</div>
+            <div class="tab" onclick="tab('sys', this)">SYSTEM</div>
         </nav>
     </div>
 
@@ -76,62 +108,32 @@
     function fill() { document.getElementById('u').value = "Svat_ferm"; document.getElementById('p').value = "17092012"; }
 
     async function login() {
-        const u = document.getElementById('u').value.trim();
-        const p = document.getElementById('p').value.trim();
+        const u = document.getElementById('u').value.trim(), p = document.getElementById('p').value.trim();
+        document.getElementById('msg').innerText = "⚡ Establishing connection...";
         try {
             const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key": KEY, "X-Bin-Meta": "false"}});
             db = await r.json();
             const users = db.record ? db.record.users : db.users;
             if(users[u] && String(users[u].password) === String(p)) {
                 cur = u; cloud = users[u].balance || 0;
-                if(!users[cur].friends) users[cur].friends = [];
-                if(!users[cur].requests) users[cur].requests = [];
-                if(!db.chats) db.chats = {};
                 document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app-ui').style.display = 'flex';
-                upd(); renderF();
-            } else { document.getElementById('msg').innerText = "❌ Помилка"; }
-        } catch(e) { document.getElementById('msg').innerText = "⚠️ Помилка мережі"; }
+                document.getElementById('app').style.display = 'flex';
+                upd(); renderTop();
+            } else { document.getElementById('msg').innerText = "❌ Access Denied"; }
+        } catch(e) { document.getElementById('msg').innerText = "⚠️ Network Error"; }
     }
 
-    function tab(name) {
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        document.getElementById('p-'+name).style.display = 'block';
-        document.querySelectorAll('.nav div').forEach(d => d.className = '');
-        document.getElementById('n-'+name).className = 'on';
-        if(name === 'more') { document.getElementById('i-u').innerText = cur; document.getElementById('i-b').innerText = (cloud + loc).toFixed(5); }
+    function tab(name, el) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+        document.getElementById('v-'+name).classList.add('on');
+        el.classList.add('on');
+        if(name === 'sys') {
+            document.getElementById('i-u').innerText = cur;
+            document.getElementById('i-session').innerText = Math.random().toString(16).slice(2, 10).toUpperCase();
+        }
     }
 
     function toggleM() {
         isM = !isM;
         const b = document.getElementById('m-btn');
-        if(isM) { b.innerText = "ПАУЗА"; b.style.background = "var(--r)"; loop(); }
-        else { b.innerText = "СТАРТ"; b.style.background = "var(--g)"; sync(); }
-    }
-
-    function loop() { if(isM) { loc += 0.00001; upd(); setTimeout(loop, 1000); } }
-    function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
-
-    async function sync() {
-        const users = db.record ? db.record.users : db.users;
-        users[cur].balance += loc;
-        try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                body: JSON.stringify(db.record ? db.record : db)
-            });
-            cloud += loc; loc = 0;
-        } catch(e) { console.log("Помилка збереження"); }
-    }
-
-    async function addF() {
-        const t = document.getElementById('f-find').value.trim();
-        const users = db.record ? db.record.users : db.users;
-        if(!users[t] || t === cur) return alert("Юзера не знайдено");
-        if(!users[t].requests) users[t].requests = [];
-        users[t].requests.push(cur);
-        await sync(); alert("Запит надіслано");
-    }
-
-    function renderF() {
-        const fl = documen
