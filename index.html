@@ -1,211 +1,131 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Farm OS v5.5</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --p: #07ff00; 
-            --bg: radial-gradient(circle at top, #0a1a2e 0%, #000000 100%);
-            --card: rgba(15, 15, 30, 0.85);
-            --t: #fff; --g: #00ff88; --r: #ff4444; 
-        }
-        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 25px; }
+const BID = "6a04f5aaadc21f119a979f14";
+const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+let db, cur, cloud = 0, loc = 0, isM = false;
+const BASE_RATE = 1 / 3600; 
 
-        /* Екран авторизації */
-        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; }
+window.onload = async function() {
+    // 1. АВТО-ВХІД (ПЕРЕВІРКА ПРИ ЗАВАНТАЖЕННІ)
+    const savedU = localStorage.getItem('stk_user');
+    const savedP = localStorage.getItem('stk_pass');
 
-        /* Основний додаток */
-        #app { display: none; flex-direction: column; height: 100vh; }
-        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
-        .view.on { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    if (savedU && savedP) {
+        // Якщо є дані, пробуємо зайти тихо
+        login(savedU, savedP, true);
+    }
 
-        /* Шапка статистики */
-        .header { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 9px; border-bottom: 1px solid rgba(7, 255, 255, 0.1); }
-        .stat-val { display: block; color: var(--p); font-size: 12px; margin-top: 4px; }
+    document.getElementById('abtn').onclick = () => {
+        const u = document.getElementById('u').value.trim().toLowerCase();
+        const p = document.getElementById('p').value.trim();
+        if(u && p) login(u, p, false);
+    };
 
-        /* Ввід та кнопки */
-        input { width: 100%; padding: 14px; margin: 10px 0; background: rgba(0,0,0,0.4); border: 1px solid #222; color: #fff; border-radius: 12px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 14px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
+    async function login(u, p, isAuto) {
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
+                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
+            });
+            db = await res.json();
+            if (!db.users) db.users = {};
 
-        /* Кнопка START/STOP */
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
-        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 40px rgba(255,68,68,0.3); }
-
-        /* Навігація */
-        nav { display: flex; background: rgba(0,0,0,0.9); border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
-        .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; }
-        .tab.on { color: var(--p); border-top: 2px solid var(--p); font-weight: bold; }
-
-        .card { padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    </style>
-</head>
-<body>
-
-    <div id="auth-screen">
-        <div class="box glass">
-            <h2 style="letter-spacing: 5px; margin-bottom: 20px;">STICK <span style="color:var(--p)">FARM</span></h2>
-            <input type="text" id="u" placeholder="ЛОГІН">
-            <input type="password" id="p" placeholder="ПАРОЛЬ">
-            <button id="abtn">CONNECT</button>
-            <p id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer; text-transform: uppercase;">Створити нову ферму</p>
-        </div>
-    </div>
-
-    <div id="app">
-        <div class="header">
-            <div>БАЛАНС<span id="stat-bal" class="stat-val">0.00</span></div>
-            <div>АКТИВНІ<span id="active-nodes" class="stat-val">0</span></div>
-            <div>ШВИДКІСТЬ<span id="stat-speed" class="stat-val">0x</span></div>
-        </div>
-
-        <div id="v-mine" class="view on">
-            <h1 id="bal" style="font-size:3.2rem; margin: 35px 0; text-shadow: 0 0 15px var(--p);">0.00000</h1>
-            <div id="mbtn" class="m-btn">START</div>
-            <p id="m-status" style="color:var(--g); font-size:11px; margin-top:10px; letter-spacing: 2px;">SYSTEM READY</p>
-        </div>
-
-        <div id="v-social" class="view">
-            <h3>NETWORK TOP</h3>
-            <div id="friends-list"></div>
-        </div>
-
-        <div id="v-profile" class="view">
-            <h3>FARM SETTINGS</h3>
-            <div class="glass card"><span>NODE_ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
-            <button onclick="logout()" style="background:var(--r); margin-top: 40px;">DISCONNECT & EXIT</button>
-        </div>
-
-        <nav>
-            <div class="tab on" id="t-mine">MINING</div>
-            <div class="tab" id="t-social">SOCIAL</div>
-            <div class="tab" id="t-profile">PROFILE</div>
-        </nav>
-    </div>
-
-    <script>
-        const BID = "6a04f5aaadc21f119a979f14";
-        const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
-        const BASE_RATE = 1 / 3600; // 1 STK на годину
-
-        window.onload = async function() {
-            // Авто-вхід
-            const sU = localStorage.getItem('stk_u');
-            const sP = localStorage.getItem('stk_p');
-            if (sU && sP) login(sU, sP, true);
-
-            document.getElementById('tlink').onclick = () => {
-                isReg = !isReg;
-                document.querySelector('#auth-screen h2').innerText = isReg ? "REGISTRY" : "STICK FARM";
-                document.getElementById('abtn').innerText = isReg ? "CREATE" : "CONNECT";
-            };
-
-            document.getElementById('abtn').onclick = () => {
-                const u = document.getElementById('u').value.trim().toLowerCase();
-                const p = document.getElementById('p').value.trim();
-                if(!u || !p) return alert("Заповніть поля!");
-                login(u, p, false);
-            };
-
-            async function login(u, p, auto) {
-                try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
-                        headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
-                    });
-                    db = await res.json();
-                    if (!db.users) db.users = {};
-
-                    if (isReg) {
-                        if (db.users[u]) return alert("Логін зайнятий!");
-                        db.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
-                        
-                        const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                            method: "PUT",
-                            headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                            body: JSON.stringify(db)
-                        });
-                        if(!saveRes.ok) return alert("Помилка реєстрації!");
-                        isReg = false;
-                        document.querySelector('#auth-screen h2').innerText = "STICK FARM";
-                        document.getElementById('abtn').innerText = "CONNECT";
-                        document.getElementById('u').value = '';
-                        document.getElementById('p').value = '';
-                        return alert("Акаунт створено!");
-                    }
-
-                    if (!db.users[u] || db.users[u].password !== p) {
-                        if (!auto) alert("Невірні дані!");
-                        return;
-                    }
-
-                    cur = u;
-                    localStorage.setItem('stk_u', u);
-                    localStorage.setItem('stk_p', p);
-                    document.getElementById('prof-id').innerText = u.toUpperCase();
-                    
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'flex';
-                    
-                    updateUI();
-                    setInterval(updateUI, 1000);
-
-                    document.getElementById('mbtn').onclick = () => {
-                        isM = !isM;
-                        document.getElementById('mbtn').classList.toggle('active');
-                        document.getElementById('m-status').innerText = isM ? 'MINING...' : 'SYSTEM READY';
-                    };
-
-                    // Навігація
-                    document.getElementById('t-mine').onclick = () => switchView('v-mine');
-                    document.getElementById('t-social').onclick = () => switchView('v-social');
-                    document.getElementById('t-profile').onclick = () => switchView('v-profile');
-
-                } catch(e) {
-                    console.error(e);
-                    alert("Помилка підключення!");
-                }
-            }
-
-            function switchView(viewId) {
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-                document.getElementById(viewId).classList.add('on');
-                event.target.classList.add('on');
-            }
-
-            function updateUI() {
-                if (!cur || !db.users[cur]) return;
-                let user = db.users[cur];
-                let balance = user.balance;
+            if (db.users[u] && db.users[u].password == p) {
+                cur = u;
+                cloud = db.users[u].balance;
                 
-                if (isM) {
-                    balance += BASE_RATE / 1000;
-                    user.balance = balance;
-                }
+                // Зберігаємо сесію
+                localStorage.setItem('stk_user', u);
+                localStorage.setItem('stk_pass', p);
+                
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                document.getElementById('prof-id').innerText = u;
 
-                document.getElementById('bal').innerText = balance.toFixed(5);
-                document.getElementById('stat-bal').innerText = balance.toFixed(2);
-                document.getElementById('active-nodes').innerText = user.active_nodes;
-                document.getElementById('stat-speed').innerText = isM ? '1x' : '0x';
+                // Перевіряємо, чи був майнінг активний до перезавантаження
+                if (localStorage.getItem('mine_on_' + cur) === 'true') {
+                    startMining(true); // true означає "тихий запуск" без зайвого пінгу
+                }
+                upd();
+                
+                // Авто-збереження кожні 30 секунд
+                setInterval(() => { if(isM) sync(); }, 30000);
+            } else {
+                if (!isAuto) alert("Невірні дані!");
+                if (isAuto) localStorage.clear();
             }
+        } catch (e) { console.error("Помилка зв'язку"); }
+    }
 
-            window.logout = function() {
-                if (confirm("Вийти з системи?")) {
-                    localStorage.removeItem('stk_u');
-                    localStorage.removeItem('stk_p');
-                    location.reload();
-                }
-            };
-        };
-    </script>
-</body>
-</html>
+    // 2. МИТТЄВА КНОПКА (СЛУХНЯНА)
+    const mbtn = document.getElementById('mbtn');
+    mbtn.onclick = function() {
+        if (!isM) {
+            startMining(false);
+        } else {
+            stopMining();
+        }
+    };
+
+    function startMining(isSilent) {
+        isM = true;
+        // Візуально змінюємо миттєво
+        mbtn.innerText = "STOP";
+        mbtn.classList.add('active');
+        document.getElementById('m-status').innerText = "MINING ACTIVE";
+        
+        localStorage.setItem('mine_on_' + cur, 'true');
+        db.users[cur].active_nodes = (db.users[cur].active_nodes || 0) + 1;
+        
+        loop();
+        if (!isSilent) sync(); // Відправляємо дані на сервер у фоні
+    }
+
+    function stopMining() {
+        isM = false;
+        // Візуально змінюємо миттєво
+        mbtn.innerText = "START";
+        mbtn.classList.remove('active');
+        document.getElementById('m-status').innerText = "SYSTEM STOPPED";
+        
+        localStorage.setItem('mine_on_' + cur, 'false');
+        db.users[cur].active_nodes = Math.max(0, (db.users[cur].active_nodes || 1) - 1);
+        
+        sync(); // Зберігаємо фінальний результат у фоні
+    }
+
+    function loop() {
+        if (isM) {
+            loc += BASE_RATE;
+            upd();
+            setTimeout(loop, 1000); // Рекурсивний виклик кожну секунду
+        }
+    }
+
+    function upd() {
+        const nodes = db.users[cur].active_nodes || 0;
+        document.getElementById('bal').innerText = (cloud + loc).toFixed(5);
+        document.getElementById('stat-bal').innerText = (cloud + loc).toFixed(2);
+        document.getElementById('active-nodes').innerText = nodes;
+        document.getElementById('stat-speed').innerText = nodes + "x";
+    }
+
+    async function sync() {
+        if (!cur) return;
+        // Копіюємо локальний прогрес у базу перед відправкою
+        db.users[cur].balance = cloud + loc;
+        
+        try {
+            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                method: "PUT", 
+                headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                body: JSON.stringify(db)
+            });
+            // Після успішного збереження переносимо локальні коїни в "хмару"
+            cloud += loc; 
+            loc = 0;
+        } catch (e) { console.error("Sync error"); }
+    }
+};
+
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
