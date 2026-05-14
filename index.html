@@ -2,34 +2,35 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin OS | Ultimate Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stick Coin OS | Ultimate v2.8</title>
     <style>
         :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        body { background: var(--bg); color: var(--t); font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--t); font-family: -apple-system, system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Екран входу */
+        /* Авторизація */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; box-shadow: 0 0 20px rgba(7,255,255,0.1); }
+        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
         
-        /* Основний додаток */
+        /* Додаток */
         #app { display: none; flex-direction: column; height: 100vh; }
         .view { flex: 1; padding: 20px; overflow-y: auto; display: none; }
         .view.on { display: block; }
         
-        /* Елементи інтерфейсу */
         .card { background: var(--card); padding: 18px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #222; }
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; box-sizing: border-box; outline: none; }
+        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
         input:focus { border-color: var(--p); }
-        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; background: var(--p); color: #000; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; font-size: 14px; }
         
-        /* Секція майнінгу */
-        .m-btn { width: 170px; height: 170px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 30px auto; display: block; font-weight: 900; }
+        /* Майнінг */
+        .m-btn { width: 170px; height: 170px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 30px auto; display: block; font-weight: 900; transition: 0.2s; }
+        .m-btn:active { transform: scale(0.95); }
         .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 20px rgba(255,68,68,0.2); }
 
         /* Навігація */
         nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
-        .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; font-weight: bold; }
+        .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .tab.on { color: var(--p); }
         
         .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #181818; }
@@ -37,61 +38,58 @@
 </head>
 <body>
 
-    <!-- ЕКРАН АВТОРИЗАЦІЇ -->
     <div id="auth-screen">
         <div class="box">
             <h1 style="letter-spacing:2px">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button onclick="login()">УВІЙТИ В СИСТЕМУ</button>
-            <p id="msg" style="color:var(--r); font-size:12px; margin-top:15px; min-height: 15px;"></p>
+            <button onclick="login()">УВІЙТИ</button>
+            <p id="msg" style="color:var(--r); font-size:12px; margin-top:15px; min-height: 1.2em;"></p>
         </div>
     </div>
 
-    <!-- КОНТЕНТ ДОДАТКУ -->
     <div id="app">
-        <div style="padding:15px; text-align:center; font-size:11px; border-bottom:1px solid #111; letter-spacing:1px">
-            ВУЗОЛ: <span id="user-tag" style="color:var(--p)">---</span>
+        <div style="padding:15px; text-align:center; font-size:11px; border-bottom:1px solid #111; color: #666;">
+            NODE: <span id="user-tag" style="color:var(--p); font-weight: bold;">---</span>
         </div>
 
-        <!-- ВКЛАДКА: МАЙНІНГ -->
+        <!-- МАЙНІНГ -->
         <div class="view on" id="v-mine">
             <div style="text-align:center; margin-top:20px">
-                <p style="font-size:10px; color:#555; margin:0">ПОТОЧНИЙ БАЛАНС</p>
-                <h1 id="bal" style="font-size:3.2rem; margin:10px 0; font-family:monospace">0.00000</h1>
+                <p style="font-size:10px; color:#555; margin:0">BALANCE</p>
+                <h1 id="bal" style="font-size:3.2rem; margin:10px 0; font-family: monospace;">0.00000</h1>
                 <button id="m-btn" class="m-btn" onclick="toggleM()">START</button>
-                <p id="status" style="font-size:11px; color:#444">СИСТЕМА СТАБІЛЬНА</p>
+                <p id="status" style="font-size:11px; color:#444">READY TO WORK</p>
             </div>
         </div>
 
-        <!-- ВКЛАДКА: РЕЙТИНГ -->
+        <!-- ТОП -->
         <div class="view" id="v-top">
             <h3 style="color:var(--p)">TOP HOLDERS</h3>
-            <div class="card" id="top-list">Оновлення даних...</div>
+            <div class="card" id="top-list">Loading data...</div>
         </div>
 
-        <!-- ВКЛАДКА: ПЕРЕКАЗИ -->
+        <!-- ТРАНЗАКЦІЇ -->
         <div class="view" id="v-tx">
             <h3 style="color:var(--g)">TRANSFER</h3>
             <div class="card">
-                <input type="text" id="tx-to" placeholder="Отримувач (@name)">
-                <input type="number" id="tx-amt" placeholder="Сума">
-                <button style="background:var(--g)" onclick="sendSTK()">SEND COINS</button>
+                <input type="text" id="tx-to" placeholder="Receiver login">
+                <input type="number" id="tx-amt" placeholder="Amount">
+                <button style="background:var(--g)" onclick="sendSTK()">SEND STICK COIN</button>
             </div>
-            <p style="font-size:11px; color:#555; text-align:center">Комісія мережі: 0%</p>
+            <p style="font-size:11px; color:#555; text-align:center">Network fee: 0%</p>
         </div>
 
-        <!-- ВКЛАДКА: ІНШЕ -->
+        <!-- ІНШЕ -->
         <div class="view" id="v-else">
-            <h3 style="color:var(--p)">SYSTEM INFO</h3>
+            <h3 style="color:var(--p)">SYSTEM</h3>
             <div class="card">
-                <p style="margin:5px 0"><b>Node:</b> Stick Coin OS</p>
-                <p style="margin:5px 0"><b>Version:</b> 2.7 stable</p>
+                <p style="margin:5px 0"><b>OS:</b> v2.8 Ultimate</p>
+                <p style="margin:5px 0"><b>Database:</b> JSONBin Cloud</p>
             </div>
             <button style="background:#222; color:var(--r)" onclick="location.reload()">LOGOUT</button>
         </div>
 
-        <!-- МЕНЮ -->
         <nav>
             <div class="tab on" onclick="tab('mine', this)">MINE</div>
             <div class="tab" onclick="tab('top', this)">TOP</div>
@@ -101,17 +99,25 @@
     </div>
 
 <script>
+    // ТВОЇ ДАНІ (Зміни бін якщо треба)
     const BID = "6a04f5aaadc21f119a979f14";
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    let db, cur, cloud = 0, loc = 0, isM = false;
+    
+    let db = { users: {} }, cur = "", cloud = 0, loc = 0, isM = false;
 
     async function login() {
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
         const msg = document.getElementById('msg');
         
+        // Режим розробника для тестування інтерфейсу
+        if (u === "debug" && p === "111") {
+            enterApp("DEBUG_USER", 1000);
+            return;
+        }
+
         msg.style.color = "var(--p)";
-        msg.innerText = "⏳ Авторизація...";
+        msg.innerText = "⏳ Connecting...";
 
         try {
             const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
@@ -121,25 +127,25 @@
             db = data.record || data;
 
             if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
-                cur = u;
-                cloud = db.users[u].balance || 0;
-                document.getElementById('user-tag').innerText = u.toUpperCase();
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                upd(); renderTop();
+                enterApp(u, db.users[u].balance || 0);
             } else {
                 msg.style.color = "var(--r)";
-                msg.innerText = "❌ Помилка входу";
+                msg.innerText = "❌ Bad login or password";
             }
         } catch (e) {
             msg.style.color = "var(--r)";
-            msg.innerText = "⚠️ Помилка з'єднання";
-            console.error(e);
+            msg.innerText = "⚠️ Server Error: " + e.message;
         }
     }
 
-    function tab(id, el) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-        document.getElementById('v-'+id).classList.add('on');
-        el.cl
+    function enterApp(user, balance) {
+        cur = user;
+        cloud = balance;
+        document.getElementById('user-tag').innerText = user.toUpperCase();
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        upd();
+        renderTop();
+    }
+
+    function ta
