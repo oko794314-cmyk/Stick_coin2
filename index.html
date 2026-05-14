@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Coin OS</title>
+    <title>Stick Coin FINAL</title>
     <style>
-        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; }
+        * { box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; display: flex; flex-direction: column; }
         
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .box { width: 85%; max-width: 320px; text-align: center; padding: 25px; background: var(--card); border-radius: 20px; border: 1px solid #222; }
@@ -17,16 +17,16 @@
         .view.on { display: block; }
         
         input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; }
         
-        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 20px; margin: 20px auto; font-weight: 900; }
-        .m-btn.active { border-color: var(--r); color: var(--r); }
+        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 20px; margin: 20px auto; font-weight: bold; }
+        .m-btn.active { border-color: #ff4444; color: #ff4444; }
         
         nav { display: flex; background: #080808; border-top: 1px solid #1a1a1a; }
         .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 12px; color: #555; cursor: pointer; }
         .tab.on { color: var(--p); border-top: 2px solid var(--p); }
         
-        .card { background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #222; text-align: left; display: flex; justify-content: space-between; }
+        .card { background: var(--card); padding: 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #222; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
@@ -37,30 +37,25 @@
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
             <button id="abtn">УВІЙТИ</button>
-            <div id="tlink" style="margin-top:15px; font-size:12px; color:#555; cursor:pointer;">Створити акаунт</div>
-            <p id="amsg" style="font-size:11px; color:var(--p); margin-top:10px;"></p>
+            <div id="tlink" style="margin-top:15px; font-size:12px; color:#555;">Створити акаунт</div>
+            <p id="amsg" style="color:var(--p); font-size:11px; margin-top:10px;"></p>
         </div>
     </div>
 
     <div id="app">
-        <div style="font-size:10px; padding:5px; color:#444; text-align:center; border-bottom:1px solid #111;">
-            USER: <span id="utag" style="color:var(--p)">---</span>
-        </div>
-
+        <div style="font-size:10px; padding:5px; color:#444; text-align:center;">USER: <span id="utag" style="color:var(--p)">---</span></div>
+        
         <div class="view on" id="v-mine">
-            <h1 id="bal" style="font-size:3rem; margin:20px 0;">0.0000</h1>
+            <h1 id="bal" style="font-size:3rem;">0.0000</h1>
             <button id="mbtn" class="m-btn">START</button>
             <p id="m-status" style="color:#333; font-size:12px;">READY</p>
         </div>
 
-        <div class="view" id="v-top">
-            <h3>TOP PLAYERS</h3>
-            <div id="top-list"></div>
-        </div>
+        <div class="view" id="v-top"><h3>TOP PLAYERS</h3><div id="top-list"></div></div>
 
         <div class="view" id="v-tx">
-            <h3>SEND COINS</h3>
-            <input type="text" id="tx-to" placeholder="Кому (логін)">
+            <h3>SEND</h3>
+            <input type="text" id="tx-to" placeholder="Кому">
             <input type="number" id="tx-amt" placeholder="Скільки">
             <button id="tx-btn" style="background:var(--g)">SEND</button>
         </div>
@@ -69,75 +64,76 @@
             <div class="tab on" id="t-mine">MINE</div>
             <div class="tab" id="t-top">TOP</div>
             <div class="tab" id="t-tx">SEND</div>
-            <div class="tab" onclick="location.reload()" style="color:var(--r)">EXIT</div>
+            <div class="tab" onclick="location.reload()" style="color:#ff4444">EXIT</div>
         </nav>
     </div>
 
     <script>
-        const BID = "6a04f5aaadc21f119a979f14";
-        const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
+        // Щоб уникнути будь-яких помилок, весь код запускається ПІСЛЯ завантаження сторінки
+        window.onload = function() {
+            const BID = "6a04f5aaadc21f119a979f14";
+            const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+            let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-        // --- АВТОРИЗАЦІЯ ---
-        document.getElementById('tlink').onclick = () => {
-            isReg = !isReg;
-            document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
-            document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
-        };
+            const amsg = document.getElementById('amsg');
 
-        document.getElementById('abtn').onclick = async () => {
-            const u = document.getElementById('u').value.trim().toLowerCase();
-            const p = document.getElementById('p').value.trim();
-            if(!u || !p) return alert("Заповни поля!");
+            // Реєстрація режим
+            document.getElementById('tlink').onclick = () => {
+                isReg = !isReg;
+                document.getElementById('atitle').innerText = isReg ? "REGISTRY" : "STICK COIN";
+                document.getElementById('abtn').innerText = isReg ? "СТВОРИТИ" : "УВІЙТИ";
+            };
 
-            document.getElementById('amsg').innerText = "⏳ Завантаження...";
-            try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?n=${Math.random()}`, {
-                    headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
-                });
-                db = await res.json();
+            // Вхід
+            document.getElementById('abtn').onclick = async () => {
+                const u = document.getElementById('u').value.trim().toLowerCase();
+                const p = document.getElementById('p').value.trim();
+                if(!u || !p) return alert("Заповни поля");
 
-                if (isReg) {
-                    if(db.users[u]) return alert("Зайнято!");
-                    db.users[u] = { password: p, balance: 1.0 };
-                    await sync();
-                    alert("Створено! Тепер увійди.");
-                    location.reload();
-                } else {
-                    if(db.users && db.users[u] && String(db.users[u].password) === String(p)) {
-                        cur = u;
-                        cloud = db.users[u].balance || 0;
-                        document.getElementById('utag').innerText = u.toUpperCase();
-                        document.getElementById('auth-screen').style.display = 'none';
-                        document.getElementById('app').style.display = 'flex';
-                        upd();
-                    } else alert("Помилка входу!");
-                }
-            } catch(e) { alert("Сервер недоступний"); }
-            document.getElementById('amsg').innerText = "";
-        };
+                amsg.innerText = "⏳ Підключення...";
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest?n=${Math.random()}`, {
+                        headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
+                    });
+                    db = await res.json();
 
-        // --- МАЙНІНГ ---
-        const mbtn = document.getElementById('mbtn');
-        mbtn.onclick = () => {
-            isM = !isM;
-            mbtn.innerText = isM ? "STOP" : "START";
-            mbtn.classList.toggle('active', isM);
-            if(isM) loop(); else sync();
-        };
+                    if(isReg) {
+                        if(db.users[u]) return alert("Логін зайнятий");
+                        db.users[u] = { password: p, balance: 1.0 };
+                        await sync();
+                        alert("Акаунт створено!");
+                        location.reload();
+                    } else {
+                        if(db.users && db.users[u] && String(db.users[u].password) === String(p)) {
+                            cur = u;
+                            cloud = db.users[u].balance || 0;
+                            document.getElementById('utag').innerText = u.toUpperCase();
+                            document.getElementById('auth-screen').style.display = 'none';
+                            document.getElementById('app').style.display = 'flex';
+                            upd();
+                        } else alert("Помилка даних");
+                    }
+                } catch(e) { alert("Сервер JSONBin не відповів"); }
+                amsg.innerText = "";
+            };
 
-        function loop() { if(isM) { loc += 0.0001; upd(); setTimeout(loop, 1000); } }
-        function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(4); }
+            // Майнінг
+            const mbtn = document.getElementById('mbtn');
+            mbtn.onclick = () => {
+                isM = !isM;
+                mbtn.innerText = isM ? "STOP" : "START";
+                mbtn.classList.toggle('active', isM);
+                if(isM) loop(); else sync();
+            };
 
-        async function sync() {
-            if(!cur) return;
-            document.getElementById('m-status').innerText = "SAVING...";
-            db.users[cur].balance = cloud + loc;
-            try {
-                await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                    method: "PUT",
-                    headers: { "X-Master-Key": KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify(db)
-                });
-                cloud += loc; loc = 0;
-                document.getElementById('m-status').innerText = "SAVED";
+            function loop() { if(isM) { loc += 0.0001; upd(); setTimeout(loop, 1000); } }
+            function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(4); }
+
+            async function sync() {
+                if(!cur) return;
+                document.getElementById('m-status').innerText = "SAVING...";
+                db.users[cur].balance = cloud + loc;
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                        method: "PUT",
+                        headers: { "X-Master-Key": KEY, "Content-Type": "
