@@ -1,6 +1,7 @@
 const BID = "6a04f5aaadc21f119a979f14";
 const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
 let db, cur, cloud = 0, loc = 0, isM = false;
+let loopInterval = null; // ❌ ПОМИЛКА 1: Додав змінну для контролю loop
 const BASE_RATE = 1 / 3600; 
 
 window.onload = async function() {
@@ -10,34 +11,44 @@ window.onload = async function() {
 
     if (savedU && savedP) {
         // Якщо є дані, пробуємо зайти тихо
-        login(savedU, savedP, true);
+        await login(savedU, savedP, true); // ❌ ПОМИЛКА 2: Додав await
     }
 
-    document.getElementById('abtn').onclick = () => {
-        const u = document.getElementById('u').value.trim().toLowerCase();
-        const p = document.getElementById('p').value.trim();
-        if(u && p) login(u, p, false);
-    };
+    const abtn = document.getElementById('abtn');
+    if (abtn) { // ❌ ПОМИЛКА 3: Додав перевірку на існування елемента
+        abtn.onclick = () => {
+            const u = document.getElementById('u').value.trim().toLowerCase();
+            const p = document.getElementById('p').value.trim();
+            if(u && p) login(u, p, false);
+        };
+    }
 
     async function login(u, p, isAuto) {
         try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
                 headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
             });
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`); // ❌ ПОМИЛКА 4: Додав перевірку HTTP статусу
+            
             db = await res.json();
             if (!db.users) db.users = {};
 
             if (db.users[u] && db.users[u].password == p) {
                 cur = u;
-                cloud = db.users[u].balance;
+                cloud = db.users[u].balance || 0; // ❌ ПОМИЛКА 5: Додав значення за замовчуванням
                 
                 // Зберігаємо сесію
                 localStorage.setItem('stk_user', u);
                 localStorage.setItem('stk_pass', p);
                 
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                document.getElementById('prof-id').innerText = u;
+                const authScreen = document.getElementById('auth-screen');
+                const appScreen = document.getElementById('app');
+                if (authScreen) authScreen.style.display = 'none'; // ❌ ПОМИЛКА 6: Перевірка на існування
+                if (appScreen) appScreen.style.display = 'flex';
+                
+                const profId = document.getElementById('prof-id');
+                if (profId) profId.innerText = u;
 
                 // Перевіряємо, чи був майнінг активний до перезавантаження
                 if (localStorage.getItem('mine_on_' + cur) === 'true') {
@@ -51,39 +62,55 @@ window.onload = async function() {
                 if (!isAuto) alert("Невірні дані!");
                 if (isAuto) localStorage.clear();
             }
-        } catch (e) { console.error("Помилка зв'язку"); }
+        } catch (e) { 
+            console.error("Помилка зв'язку:", e); // ❌ ПОМИЛКА 7: Додав деталі помилки
+        }
     }
 
     // 2. МИТТЄВА КНОПКА (СЛУХНЯНА)
     const mbtn = document.getElementById('mbtn');
-    mbtn.onclick = function() {
-        if (!isM) {
-            startMining(false);
-        } else {
-            stopMining();
-        }
-    };
+    if (mbtn) { // ❌ ПОМИЛКА 8: Перевірка на існування
+        mbtn.onclick = function() {
+            if (!isM) {
+                startMining(false);
+            } else {
+                stopMining();
+            }
+        };
+    }
 
     function startMining(isSilent) {
+        if (isM || !cur) return; // ❌ ПОМИЛКА 9: Попередження від подвійного запуску
+        
         isM = true;
         // Візуально змінюємо миттєво
-        mbtn.innerText = "STOP";
-        mbtn.classList.add('active');
-        document.getElementById('m-status').innerText = "MINING ACTIVE";
+        if (mbtn) mbtn.innerText = "STOP";
+        if (mbtn) mbtn.classList.add('active');
+        
+        const mStatus = document.getElementById('m-status');
+        if (mStatus) mStatus.innerText = "MINING ACTIVE";
         
         localStorage.setItem('mine_on_' + cur, 'true');
-        db.users[cur].active_nodes = (db.users[cur].active_nodes || 0) + 1;
+        if (!db.users[cur].active_nodes) db.users[cur].active_nodes = 0; // ❌ ПОМИЛКА 10: Ініціалізація
+        db.users[cur].active_nodes += 1;
         
         loop();
         if (!isSilent) sync(); // Відправляємо дані на сервер у фоні
     }
 
     function stopMining() {
+        if (!isM || !cur) return; // ❌ ПОМИЛКА 11: Перевірка
+        
         isM = false;
+        // Скасуємо рекурсивний loop
+        if (loopInterval) clearTimeout(loopInterval); // ❌ ПОМИЛКА 12: Очистка таймаута
+        
         // Візуально змінюємо миттєво
-        mbtn.innerText = "START";
-        mbtn.classList.remove('active');
-        document.getElementById('m-status').innerText = "SYSTEM STOPPED";
+        if (mbtn) mbtn.innerText = "START";
+        if (mbtn) mbtn.classList.remove('active');
+        
+        const mStatus = document.getElementById('m-status');
+        if (mStatus) mStatus.innerText = "SYSTEM STOPPED";
         
         localStorage.setItem('mine_on_' + cur, 'false');
         db.users[cur].active_nodes = Math.max(0, (db.users[cur].active_nodes || 1) - 1);
@@ -95,33 +122,48 @@ window.onload = async function() {
         if (isM) {
             loc += BASE_RATE;
             upd();
-            setTimeout(loop, 1000); // Рекурсивний виклик кожну секунду
+            loopInterval = setTimeout(loop, 1000); // ❌ ПОМИЛКА 13: Зберігаємо ID таймаута
         }
     }
 
     function upd() {
+        if (!cur || !db.users[cur]) return; // ❌ ПОМИЛКА 14: Перевірка безпеки
+        
         const nodes = db.users[cur].active_nodes || 0;
-        document.getElementById('bal').innerText = (cloud + loc).toFixed(5);
-        document.getElementById('stat-bal').innerText = (cloud + loc).toFixed(2);
-        document.getElementById('active-nodes').innerText = nodes;
-        document.getElementById('stat-speed').innerText = nodes + "x";
+        const balance = (cloud + loc).toFixed(5);
+        
+        const bal = document.getElementById('bal');
+        const statBal = document.getElementById('stat-bal');
+        const activeNodes = document.getElementById('active-nodes');
+        const statSpeed = document.getElementById('stat-speed');
+        
+        if (bal) bal.innerText = balance;
+        if (statBal) statBal.innerText = (cloud + loc).toFixed(2);
+        if (activeNodes) activeNodes.innerText = nodes;
+        if (statSpeed) statSpeed.innerText = nodes + "x";
     }
 
     async function sync() {
-        if (!cur) return;
+        if (!cur || !db.users[cur]) return; // ❌ ПОМИЛКА 15: Перевірка безпеки
+        
         // Копіюємо локальний прогрес у базу перед відправкою
         db.users[cur].balance = cloud + loc;
         
         try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
                 method: "PUT", 
                 headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
                 body: JSON.stringify(db)
             });
+            
+            if (!res.ok) throw new Error(`Sync HTTP ${res.status}`); // ❌ ПОМИЛКА 16: Перевірка HTTP
+            
             // Після успішного збереження переносимо локальні коїни в "хмару"
             cloud += loc; 
             loc = 0;
-        } catch (e) { console.error("Sync error"); }
+        } catch (e) { 
+            console.error("Sync error:", e); // ❌ ПОМИЛКА 17: Деталі помилки
+        }
     }
 };
 
