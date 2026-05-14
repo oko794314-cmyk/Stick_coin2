@@ -3,55 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin</title>
+    <title>Stick Coin Pro</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        .screen { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .box { width: 100%; max-width: 300px; text-align: center; background: #111; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        :root { --p: #07FF; --bg: #000; --c: #111; --t: #fff; --g: #00ff88; --r: #ff4444; }
+        body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .box { width: 100%; max-width: 300px; text-align: center; background: var(--c); padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 100; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: #07FF; color: #000; }
+        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
         #app-ui { display: none; flex-direction: column; height: 100vh; }
-        .page { display: none; flex: 1; padding: 20px; text-align: center; }
+        .page { display: none; flex: 1; padding: 20px; overflow-y: auto; }
         .active { display: block; }
         .nav { display: flex; background: #0a0a0a; border-top: 1px solid #333; }
-        .nav div { flex: 1; padding: 15px; text-align: center; font-size: 12px; color: #555; cursor: pointer; }
-        .nav .on { color: #07FF; font-weight: bold; }
+        .nav div { flex: 1; padding: 15px; text-align: center; font-size: 11px; color: #555; cursor: pointer; }
+        .nav .on { color: var(--p); font-weight: bold; }
+        .item { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; border: 1px solid #222; }
+        .chat-area { height: 120px; background: #000; border-radius: 8px; padding: 8px; overflow-y: auto; margin: 10px 0; font-size: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <!-- ВХІД -->
-    <div id="auth-screen" class="screen">
+    <div id="auth-screen">
         <div class="box">
-            <h1 onclick="fill()" style="cursor:pointer">STICK <span style="color:#07FF">COIN</span></h1>
+            <h1 onclick="fill()" style="cursor:pointer">STICK <span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button onclick="login()">УВІЙТИ</button>
+            <button style="width:100%" onclick="login()">УВІЙТИ</button>
             <p id="msg" style="font-size:12px; color: gray; margin-top: 10px;"></p>
         </div>
     </div>
 
-    <!-- ДОДАТОК -->
     <div id="app-ui">
-        <div id="p-mine" class="page active">
+        <!-- МАЙНІНГ -->
+        <div id="p-mine" class="page active" style="text-align:center">
             <p style="color:#666; margin-top:40px">БАЛАНС</p>
             <h1 id="bal" style="font-size: 3rem; font-family: monospace;">0.00000</h1>
-            <button id="m-btn" style="background:#0f8; width:150px; border-radius:30px" onclick="toggleM()">СТАРТ</button>
+            <button id="m-btn" style="background:var(--g); width:150px; border-radius:30px" onclick="toggleM()">СТАРТ</button>
             <p id="st-info" style="font-size:10px; color:#444; margin-top:10px">Система онлайн</p>
         </div>
 
-        <div id="p-more" class="page">
-            <h3>ІНФОРМАЦІЯ</h3>
-            <div style="background:#1a1a1a; padding:15px; border-radius:10px; text-align:left; margin-bottom:10px">
-                Логін: <b id="i-u"></b><br>
-                Баланс: <b id="i-b"></b>
+        <!-- ДРУЗІ -->
+        <div id="p-friends" class="page">
+            <h3>ДРУЗІ ТА ЧАТИ</h3>
+            <div class="item">
+                <input type="text" id="f-find" placeholder="Логін друга" style="margin:0">
+                <button onclick="addF()" style="width:100%; margin-top:10px">ДОДАТИ</button>
             </div>
-            <button style="background:red; color:#fff" onclick="location.reload()">ВИЙТИ</button>
+            <div id="req-list"></div>
+            <div id="f-list"></div>
+        </div>
+
+        <!-- ІНШЕ -->
+        <div id="p-more" class="page">
+            <h3>АКАУНТ</h3>
+            <div class="item">Логін: <b id="i-u"></b></div>
+            <div class="item">Баланс: <b id="i-b"></b></div>
+            <button style="background:var(--r); color:#fff; width:100%" onclick="location.reload()">ВИЙТИ</button>
         </div>
 
         <nav class="nav">
-            <div id="n1" class="on" onclick="tab('mine')">МАЙНІНГ</div>
-            <div id="n2" onclick="tab('more')">ІНШЕ</div>
+            <div id="n-mine" class="on" onclick="tab('mine')">МАЙНІНГ</div>
+            <div id="n-friends" onclick="tab('friends')">ДРУЗІ</div>
+            <div id="n-more" onclick="tab('more')">ІНШЕ</div>
         </nav>
     </div>
 
@@ -60,74 +73,65 @@
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     let cur = null, isM = false, loc = 0, cloud = 0, db = null;
 
-    function fill() {
-        document.getElementById('u').value = "Svat_ferm";
-        document.getElementById('p').value = "17092012";
-    }
+    function fill() { document.getElementById('u').value = "Svat_ferm"; document.getElementById('p').value = "17092012"; }
 
     async function login() {
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
-        const msg = document.getElementById('msg');
-        msg.innerText = "⏳ Завантаження...";
-
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
-                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
-            });
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key": KEY, "X-Bin-Meta": "false"}});
             db = await r.json();
             const users = db.record ? db.record.users : db.users;
-
             if(users[u] && String(users[u].password) === String(p)) {
-                cur = u;
-                cloud = users[u].balance || 0;
+                cur = u; cloud = users[u].balance || 0;
+                if(!users[cur].friends) users[cur].friends = [];
+                if(!users[cur].requests) users[cur].requests = [];
+                if(!db.chats) db.chats = {};
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-ui').style.display = 'flex';
-                upd();
-            } else {
-                msg.innerText = "❌ Помилка входу";
-            }
-        } catch(e) {
-            msg.innerText = "⚠️ Помилка з'єднання";
-        }
+                upd(); renderF();
+            } else { document.getElementById('msg').innerText = "❌ Помилка"; }
+        } catch(e) { document.getElementById('msg').innerText = "⚠️ Помилка мережі"; }
     }
 
     function tab(name) {
-        document.getElementById('p-mine').style.display = name === 'mine' ? 'block' : 'none';
-        document.getElementById('p-more').style.display = name === 'more' ? 'block' : 'none';
-        document.getElementById('n1').className = name === 'mine' ? 'on' : '';
-        document.getElementById('n2').className = name === 'more' ? 'on' : '';
-        
-        if(name === 'more') {
-            document.getElementById('i-u').innerText = cur;
-            document.getElementById('i-b').innerText = (cloud + loc).toFixed(5);
-        }
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById('p-'+name).style.display = 'block';
+        document.querySelectorAll('.nav div').forEach(d => d.className = '');
+        document.getElementById('n-'+name).className = 'on';
+        if(name === 'more') { document.getElementById('i-u').innerText = cur; document.getElementById('i-b').innerText = (cloud + loc).toFixed(5); }
     }
 
     function toggleM() {
         isM = !isM;
         const b = document.getElementById('m-btn');
-        if(isM) { b.innerText = "ПАУЗА"; b.style.background = "red"; loop(); }
-        else { b.innerText = "СТАРТ"; b.style.background = "#0f8"; sync(); }
+        if(isM) { b.innerText = "ПАУЗА"; b.style.background = "var(--r)"; loop(); }
+        else { b.innerText = "СТАРТ"; b.style.background = "var(--g)"; sync(); }
     }
 
     function loop() { if(isM) { loc += 0.00001; upd(); setTimeout(loop, 1000); } }
     function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
     async function sync() {
-        document.getElementById('st-info').innerText = "⏳ Збереження...";
         const users = db.record ? db.record.users : db.users;
         users[cur].balance += loc;
         try {
             await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                method: "PUT",
-                headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
                 body: JSON.stringify(db.record ? db.record : db)
             });
             cloud += loc; loc = 0;
-            document.getElementById('st-info').innerText = "✅ Збережено";
-        } catch(e) { document.getElementById('st-info').innerText = "❌ Помилка"; }
+        } catch(e) { console.log("Помилка збереження"); }
     }
-</script>
-</body>
-</html>
+
+    async function addF() {
+        const t = document.getElementById('f-find').value.trim();
+        const users = db.record ? db.record.users : db.users;
+        if(!users[t] || t === cur) return alert("Юзера не знайдено");
+        if(!users[t].requests) users[t].requests = [];
+        users[t].requests.push(cur);
+        await sync(); alert("Запит надіслано");
+    }
+
+    function renderF() {
+        const fl = documen
