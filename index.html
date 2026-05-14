@@ -20,21 +20,21 @@
         .nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: #111; display: flex; border-top: 1px solid #333; }
         .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: #666; cursor: pointer; }
         .nav-item.active { color: var(--accent); background: #1a1a1a; }
+        #debug { font-size: 0.7em; color: #555; margin-top: 10px; font-family: monospace; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Вхід -->
     <div id="auth-screen" class="screen active-screen">
         <h1 style="color:var(--accent); text-align:center">STICK COIN</h1>
-        <input type="text" id="uIn" placeholder="Логін">
+        <input type="text" id="uIn" placeholder="Логін (Svat_ferm)">
         <input type="password" id="pIn" placeholder="Пароль">
         <button class="btn btn-main" onclick="login()">УВІЙТИ</button>
         <p id="auth-err" style="color:var(--red); font-size:0.8em; text-align:center"></p>
+        <div id="debug"></div>
     </div>
 
-    <!-- Головний екран -->
     <div id="main-ui" class="screen">
         <div id="p-mine" class="page active">
             <h2 style="text-align:center">МАЙНІНГ</h2>
@@ -55,8 +55,6 @@
             <h2>ІНФО</h2>
             <div class="list-item">Логін: <b id="info-login"></b></div>
             <div class="list-item">Баланс: <b id="info-bal"></b></div>
-            <input type="password" id="newPass" placeholder="Новий пароль">
-            <button class="btn" style="background:#333; color:#fff" onclick="changePass()">Змінити пароль</button>
             <button class="btn" style="background:var(--red); color:#fff; margin-top:20px" onclick="logout()">ВИЙТИ</button>
         </div>
 
@@ -77,17 +75,29 @@
         const u = document.getElementById('uIn').value.trim();
         const p = document.getElementById('pIn').value.trim();
         const err = document.getElementById('auth-err');
-        err.innerText = "⏳ Завантаження...";
-
+        const dbg = document.getElementById('debug');
+        
+        err.innerText = "⏳ Вхід...";
+        
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
+            });
             fullData = await r.json();
-            const users = fullData.users || fullData.record.users;
+            
+            // Підтримка різних структур JSON
+            const users = fullData.users || (fullData.record ? fullData.record.users : null);
+            
+            if (!users) {
+                err.innerText = "❌ Помилка структури бази";
+                return;
+            }
 
             if(users[u] && String(users[u].password) === String(p)) {
                 currentUser = u;
                 cloud = users[u].balance || 0;
-                // Захист: створюємо поля, якщо їх немає
+                
+                // Ініціалізація полів, якщо їх нема
                 if(!users[u].friends) users[u].friends = [];
                 if(!users[u].requests) users[u].requests = [];
                 
@@ -95,8 +105,14 @@
                 document.getElementById('main-ui').classList.add('active-screen');
                 upd();
                 loadFriends();
-            } else { err.innerText = "❌ Невірні дані"; }
-        } catch(e) { err.innerText = "⚠️ Помилка мережі"; }
+            } else {
+                err.innerText = "❌ Невірний логін або пароль";
+                dbg.innerText = `Доступні юзери: ${Object.keys(users).join(', ')}`;
+            }
+        } catch(e) {
+            err.innerText = "⚠️ Помилка з'єднання";
+            dbg.innerText = e.message;
+        }
     }
 
     function tab(name, el) {
@@ -121,13 +137,7 @@
     function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
 
     async function sync() {
-        document.getElementById('st-text').innerText = "⏳ Синхронізація...";
-        fullData.users[currentUser].balance += loc;
-        try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                body: JSON.stringify(fullData)
-            });
-            cloud += loc; loc = 0; upd();
-            document.getElementById('st-text').innerText = "✅ Збережено";
-        } catch(e) { document.getElementById('st-text').innerText = "❌ Помилка"; }
+        const st = document.getElementById('st-text');
+        st.innerText = "⏳ Збереження...";
+        
+        // Оновлюємо дані перед відправкою
