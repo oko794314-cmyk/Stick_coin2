@@ -1,119 +1,8 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin | Mining Farm</title>
-    <style>
-        :root {
-            --accent: #07FF; /* Неоновий блакитний */
-            --bg: #0a0a0a;
-            --card: #151515;
-            --text: #ffffff;
-            --gray: #7BEF;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: var(--card);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-            text-align: center;
-        }
-
-        h1 { color: var(--accent); letter-spacing: 2px; font-size: 1.5em; margin-bottom: 25px; }
-        
-        .balance-label { font-size: 0.9em; color: var(--gray); margin-bottom: 5px; }
-        .balance-value { font-size: 3em; font-weight: bold; margin-bottom: 20px; font-family: monospace; }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 8px;
-            color: white;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        input:focus { border-color: var(--accent); }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 15px;
-            background: var(--accent);
-            border: none;
-            border-radius: 8px;
-            color: black;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover { opacity: 0.8; transform: translateY(-2px); }
-        
-        .logout-btn { background: #333; color: #ff4444; margin-top: 20px; font-size: 0.8em; }
-
-        .settings-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-        }
-
-        .status { font-size: 0.8em; margin-top: 15px; color: #555; }
-    </style>
-</head>
-<body>
-
-    <div class="container" id="auth-screen">
-        <h1>STICK COIN LOGIN</h1>
-        <input type="text" id="userIn" placeholder="Ваш логін">
-        <input type="password" id="passIn" placeholder="Ваш пароль">
-        <button onclick="login()">УВІЙТИ В СИСТЕМУ</button>
-        <p class="status">Введіть дані для синхронізації зі стіком</p>
-    </div>
-
-    <div class="container" id="main-screen" style="display:none;">
-        <h1 id="welcome-msg">DASHBOARD</h1>
-        
-        <div class="balance-label">ЗАГАЛЬНИЙ БАЛАНС (WEB + STICK)</div>
-        <div class="balance-value" id="balance-num">0.00000</div>
-
-        <div class="settings-section">
-            <p style="color: var(--gray); font-size: 0.9em;">Налаштування безпеки</p>
-            <input type="password" id="newPass" placeholder="Новий пароль">
-            <button onclick="changePassword()" style="background: transparent; border: 1px solid var(--accent); color: var(--accent);">ЗМІНИТИ ПАРОЛЬ</button>
-        </div>
-
-        <button class="logout-btn" onclick="logout()">ВИЙТИ З АКАУНТА</button>
-        <p class="status" id="sync-status">Синхронізація активна...</p>
-    </div>
-
 <script>
-    // Твої ключі до бази даних
     const BIN_ID = "6a04f5aaadc21f119a979f14";
     const MASTER_KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     let currentUser = null;
 
-    // Перевірка пам'яті браузера при завантаженні
     window.onload = () => {
         const saved = localStorage.getItem("stick_user");
         if (saved) {
@@ -122,71 +11,78 @@
         }
     };
 
-    // Функція входу
     async function login() {
         const u = document.getElementById("userIn").value.trim();
         const p = document.getElementById("passIn").value.trim();
         
-        if (!u || !p) return alert("Заповніть всі поля!");
+        console.log("Спроба входу для:", u);
+
+        if (!u || !p) {
+            alert("Заповніть поля!");
+            return;
+        }
 
         try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {"X-Master-Key": MASTER_KEY}
+                method: 'GET',
+                headers: {
+                    "X-Master-Key": MASTER_KEY,
+                    "X-Bin-Meta": "false" // Це важливо, щоб отримати чистий JSON
+                }
             });
-            const data = await res.json();
-            const users = data.record.users;
 
-            if (users[u] && users[u].password === p) {
+            if (!res.ok) {
+                throw new Error("Помилка сервера: " + res.status);
+            }
+
+            const data = await res.json();
+            console.log("Дані з бази отримано:", data);
+
+            // Перевірка структури
+            if (data.users && data.users[u] && data.users[u].password === p) {
                 currentUser = u;
                 localStorage.setItem("stick_user", u);
                 showMain();
             } else {
-                alert("Невірний логін або пароль!");
+                alert("Невірний логін або пароль! Перевірте базу JSONBin.");
             }
         } catch (err) {
-            alert("Помилка з'єднання з базою");
+            console.error("Критична помилка:", err);
+            alert("Не вдалося підключитися до бази: " + err.message);
         }
     }
 
-    // Показ головного екрана
     function showMain() {
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("main-screen").style.display = "block";
         document.getElementById("welcome-msg").innerText = currentUser.toUpperCase();
-        
         updateBalance();
-        // Опитуємо базу кожні 10 секунд, щоб бачити майнінг зі стіка в реальному часі
         setInterval(updateBalance, 10000);
     }
 
-    // Отримання актуального балансу
     async function updateBalance() {
         try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {"X-Master-Key": MASTER_KEY}
+                headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false" }
             });
             const data = await res.json();
-            const bal = data.record.users[currentUser].balance;
-            
+            const bal = data.users[currentUser].balance;
             document.getElementById("balance-num").innerText = bal.toFixed(5);
-            document.getElementById("sync-status").innerText = "Оновлено: " + new Date().toLocaleTimeString();
         } catch (err) {
-            console.error("Помилка оновлення");
+            console.log("Помилка оновлення балансу");
         }
     }
 
-    // Зміна пароля
     async function changePassword() {
         const newP = document.getElementById("newPass").value.trim();
-        if (newP.length < 4) return alert("Пароль занадто короткий!");
+        if (newP.length < 4) return alert("Пароль закороткий");
 
         try {
             const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {"X-Master-Key": MASTER_KEY}
+                headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false" }
             });
             let data = await res.json();
-            
-            data.record.users[currentUser].password = newP;
+            data.users[currentUser].password = newP;
 
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                 method: "PUT",
@@ -194,13 +90,14 @@
                     "X-Master-Key": MASTER_KEY,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(data.record)
+                body: JSON.stringify(data)
             });
-            alert("Пароль успішно змінено!");
-            document.getElementById("newPass").value = "";
-        } catch (err) {
-            alert("Помилка при збереженні");
-        }
+            alert("Пароль змінено!");
+        } catch (err) { alert("Помилка збереження"); }
     }
 
-    // Вихід (очищення пам'я
+    function logout() {
+        localStorage.removeItem("stick_user");
+        location.reload();
+    }
+</script>
