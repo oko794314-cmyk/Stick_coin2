@@ -3,137 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin</title>
+    <title>Stick Coin Hub</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { background: #151515; padding: 30px; border-radius: 20px; max-width: 380px; margin: auto; border: 1px solid #333; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #07FF; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; color: black; margin-top: 10px; }
-        #status { font-size: 0.8em; margin-top: 20px; padding: 10px; border-radius: 5px; background: #222; min-height: 20px; color: #aaa; }
-        .page { display: none; }
-        .active { display: block; }
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; background: #111; border-top: 1px solid #333; }
-        .nav-btn { flex: 1; padding: 20px; cursor: pointer; font-size: 0.8em; color: #666; }
-        .nav-btn.active { color: #07FF; background: #1a1a1a; }
+        :root { --accent: #07FF; --bg: #0a0a0a; --card: #151515; --text: #ffffff; --nav: #1a1a1a; --green: #00ff88; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
+        
+        .container { width: 100%; max-width: 450px; background: var(--card); position: relative; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        
+        /* Екран входу */
+        #auth-screen { padding: 40px 20px; text-align: center; height: 100%; justify-content: center; display: flex; flex-direction: column; }
+        input { width: 100%; padding: 14px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent); }
+        
+        .btn { width: 100%; padding: 14px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 10px; margin-top: 10px; color: black; text-transform: uppercase; }
+        .btn-mine { background: var(--green); margin: 20px 0; font-size: 1.2em; }
+        .btn-mine.active { background: #ff4444; }
+
+        /* Контент */
+        .content-area { flex-grow: 1; padding: 25px 20px; overflow-y: auto; padding-bottom: 90px; }
+        .page { display: none; text-align: center; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+
+        .balance { font-size: 3.2em; font-family: monospace; font-weight: bold; margin: 10px 0; color: var(--accent); text-shadow: 0 0 15px rgba(7, 255, 255, 0.2); }
+        
+        /* Навігація */
+        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: var(--nav); display: flex; border-top: 1px solid #333; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #666; font-size: 0.7em; }
+        .nav-item.active { color: var(--accent); background: rgba(7, 255, 255, 0.05); }
+
+        .list-item { background: #1a1a1a; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; border-left: 3px solid var(--accent); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="box">
-        <h1 style="color:#07FF">STICK COIN</h1>
-        <input type="text" id="u" placeholder="Твій Логін">
-        <input type="password" id="p" placeholder="Твій Пароль">
-        <button onclick="doLogin()">УВІЙТИ</button>
-        <div id="status">Очікування...</div>
-    </div>
-
-    <div id="main-ui" style="display:none">
-        <div id="page-1" class="page active">
-            <h2 style="color:#07FF">STICK COIN</h2>
-            <div style="font-size: 3.5em; font-family: monospace; margin: 20px 0;" id="bal">0.00000</div>
-            <button id="mBtn" onclick="toggleM()" style="background:#00ff88; font-size: 1.2em;">ПОЧАТИ МАЙНІНГ</button>
-            <p id="st-text" style="color:#666; margin-top:20px;">Статус: Готовий</p>
+    <div class="container">
+        <!-- АВТОРИЗАЦІЯ -->
+        <div id="auth-screen">
+            <h1 style="color:var(--accent)">STICK COIN</h1>
+            <p style="font-size: 0.8em; color: #555;">Введіть дані для доступу до майнінгу</p>
+            <input type="text" id="userIn" placeholder="Логін">
+            <input type="password" id="passIn" placeholder="Пароль">
+            <button class="btn" onclick="login()">УВІЙТИ</button>
+            <p id="err" style="color: #ff4444; font-size: 0.8em; margin-top: 10px; font-family: monospace;"></p>
         </div>
 
-        <div id="page-2" class="page">
-            <h2>ДРУЗІ</h2>
-            <div style="background:#222; padding:15px; border-radius:10px; border-left:4px solid #07FF">Користувач 1 (Online)</div>
-        </div>
+        <!-- ОСНОВНИЙ ІНТЕРФЕЙС -->
+        <div id="main-ui" style="display: none; height: 100%;">
+            <div class="content-area">
+                
+                <!-- МАЙНІНГ -->
+                <div id="page-mine" class="page active">
+                    <h2>МАЙНІНГ</h2>
+                    <div style="font-size: 0.8em; color: #7BEF; margin-top: 20px;">ПОТОЧНИЙ БАЛАНС</div>
+                    <div class="balance" id="bal">0.00000</div>
+                    
+                    <button id="mineBtn" class="btn btn-mine" onclick="toggleMining()">ПОЧАТИ МАЙНІНГ</button>
+                    
+                    <div style="background: #111; padding: 15px; border-radius: 10px; font-size: 0.8em; text-align: left;">
+                        <p id="status-text">Статус: Готовий</p>
+                        <p id="session-earn">Намайнено зараз: +0.00000</p>
+                    </div>
+                </div>
 
-        <div id="page-3" class="page">
-            <h2>ТРАНЗАКЦІЇ</h2>
-            <p style="color:#aaa">Останнє зарахування: +0.00540 STK</p>
-        </div>
+                <!-- ДРУЗІ -->
+                <div id="page-friends" class="page">
+                    <h2>ДРУЗІ</h2>
+                    <div class="list-item"><span>Користувач 1</span><span style="color:var(--green)">Online</span></div>
+                    <div class="list-item"><span>Користувач 2</span><span style="color:#555">Offline</span></div>
+                    <button class="btn" style="background:none; border:1px solid #444; color:#777;">+ Додати друга</button>
+                </div>
 
-        <div class="nav">
-            <div class="nav-btn" onclick="tab(2)">Друзі</div>
-            <div class="nav-btn active" id="tab1" onclick="tab(1)">Майнінг</div>
-            <div class="nav-btn" onclick="tab(3)">Транзакції</div>
+                <!-- ТРАНЗАКЦІЇ -->
+                <div id="page-trans" class="page">
+                    <h2>ТРАНЗАКЦІЇ</h2>
+                    <div class="list-item"><span>Бонус за реєстрацію</span><span style="color:var(--green)">+0.00500</span></div>
+                    <div class="list-item"><span>Cloud Sync</span><span style="color:var(--accent)">Success</span></div>
+                </div>
+
+            </div>
+
+            <!-- МЕНЮ -->
+            <div class="nav-bar">
+                <div class="nav-item" onclick="switchTab('friends', this)"><span>Друзі</span></div>
+                <div class="nav-item active" onclick="switchTab('mine', this)"><span>Майнінг</span></div>
+                <div class="nav-item" onclick="switchTab('trans', this)"><span>Перекази</span></div>
+            </div>
         </div>
     </div>
 
 <script>
     const BIN_ID = "6a04f5aaadc21f119a979f14";
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-    let user = null, isM = false, loc = 0, cloud = 0;
+    
+    let currentUser = null, isMining = false, localEarned = 0, cloudBalance = 0;
 
-    async function doLogin() {
-        const uIn = document.getElementById('u').value.trim().toLowerCase();
-        const pIn = document.getElementById('p').value.trim();
-        const stat = document.getElementById('status');
-
-        if(!uIn || !pIn) { stat.innerText = "⚠️ Введіть дані!"; return; }
-        stat.innerText = "⏳ З'єднання з базою...";
+    async function login() {
+        const u = document.getElementById("userIn").value.trim();
+        const p = document.getElementById("passIn").value.trim();
+        const err = document.getElementById("err");
+        
+        if(!u || !p) { err.innerText = "Введіть логін та пароль"; return; }
+        err.style.color = "white";
+        err.innerText = "⏳ Авторизація...";
 
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
             });
+            const data = await res.json();
+            const users = data.users || (data.record ? data.record.users : null);
 
-            if(!r.ok) { stat.innerText = "❌ Помилка сервера: " + r.status; return; }
-
-            const d = await r.json();
-            const users = d.users || (d.record ? d.record.users : null);
-
-            if (!users) { stat.innerText = "❌ Помилка структури бази (users не знайдено)"; return; }
-
-            if (users[uIn] && String(users[uIn].password) === String(pIn)) {
-                user = uIn;
-                cloud = users[uIn].balance || 0;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'block';
-                upd();
+            // Перевірка конкретно твоїх даних Svat_ferm та 17092012
+            if (users[u] && String(users[u].password) === String(p)) {
+                currentUser = u;
+                cloudBalance = users[u].balance || 0;
+                localStorage.setItem("stick_user", u);
+                showMain();
             } else {
-                stat.innerText = "❌ Невірний логін або пароль";
+                err.style.color = "#ff4444";
+                err.innerText = "❌ Невірний логін або пароль";
             }
         } catch (e) {
-            stat.innerText = "⚠️ Помилка з'єднання: " + e.message;
+            err.style.color = "#ff4444";
+            err.innerText = "⚠️ Помилка з'єднання: " + e.message;
         }
     }
 
-    function tab(n) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('page-'+n).classList.add('active');
-        if(n === 1) document.getElementById('tab1').classList.add('active');
-    }
-
-    function toggleM() {
-        isM = !isM;
-        const b = document.getElementById('mBtn');
-        if(isM) {
-            b.innerText = "ЗУПИНИТИ"; b.style.background = "#ff4444";
-            loop();
-        } else {
-            b.innerText = "ПОЧАТИ МАЙНІНГ"; b.style.background = "#00ff88";
-            sync();
-        }
-    }
-
-    function loop() {
-        if(!isM) return;
-        loc += 0.00001; upd();
-        setTimeout(loop, 1000);
-    }
-
-    function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
-
-    async function sync() {
-        document.getElementById('st-text').innerText = "⏳ Збереження...";
-        try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {headers:{"X-Master-Key": KEY, "X-Bin-Meta": "false"}});
-            let d = await r.json();
-            let root = d.record ? d.record : d;
-            root.users[user].balance += loc;
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: "PUT",
-                headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
-                body: JSON.stringify(root)
-            });
-            cloud += loc; loc = 0; upd();
-            document.getElementById('st-text').innerText = "✅ Дані в хмарі";
-        } catch (e) { document.getElementById('st-text').innerText = "❌ Помилка синхронізації"; }
-    }
-</script>
-</body>
-</html>
+    function showMain() {
+        document.getE
