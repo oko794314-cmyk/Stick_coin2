@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick Coin OS v3.1</title>
+    <title>Stick Coin OS v3.2</title>
     <style>
         :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--t); font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
@@ -18,8 +18,7 @@
         
         .card { background: var(--card); padding: 18px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #222; }
         input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; transition: 0.2s; }
-        button:active { transform: scale(0.95); opacity: 0.8; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
         
         .m-btn { width: 170px; height: 170px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 30px auto; display: block; font-weight: 900; }
         .m-btn.active { border-color: var(--r); color: var(--r); }
@@ -27,53 +26,49 @@
         nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
         .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #444; cursor: pointer; }
         .tab.on { color: var(--p); border-top: 2px solid var(--p); }
-        
-        .top-item { display: flex; justify-content: space-between; padding: 10px; background: #000; margin-bottom: 5px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="box">
-            <h1 style="letter-spacing:2px">STICK<span style="color:var(--p)">COIN</span></h1>
+            <h1>STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button id="login-btn" onclick="login()">УВІЙТИ</button>
-            <p id="msg" style="color:var(--r); font-size:11px; margin-top:15px; white-space: pre-wrap;"></p>
+            <button onclick="handleLogin()">УВІЙТИ</button>
+            <p id="msg" style="color:var(--p); font-size:12px; margin-top:15px;"></p>
         </div>
     </div>
 
     <div id="app">
-        <div style="padding:15px; text-align:center; font-size:11px; border-bottom:1px solid #111; color: #666;">
+        <div style="padding:15px; text-align:center; font-size:11px; border-bottom:1px solid #111;">
             NODE: <span id="user-tag" style="color:var(--p)">---</span>
         </div>
 
         <div class="view on" id="v-mine">
             <div style="text-align:center; margin-top:20px">
-                <p style="font-size:10px; color:#555; margin:0">BALANCE</p>
                 <h1 id="bal" style="font-size:3.2rem; margin:10px 0; font-family: monospace;">0.00000</h1>
                 <button id="m-btn" class="m-btn" onclick="toggleM()">START</button>
-                <p id="status" style="font-size:11px; color:#444">READY</p>
+                <p id="status" style="color:#444">READY</p>
             </div>
         </div>
 
         <div class="view" id="v-top">
-            <h3 style="color:var(--p)">TOP HOLDERS</h3>
+            <h3>TOP HOLDERS</h3>
             <div id="top-list">...</div>
         </div>
 
         <div class="view" id="v-tx">
-            <h3 style="color:var(--g)">TRANSFER</h3>
+            <h3>TRANSFER</h3>
             <div class="card">
-                <input type="text" id="tx-to" placeholder="Receiver login">
+                <input type="text" id="tx-to" placeholder="Receiver">
                 <input type="number" id="tx-amt" placeholder="Amount">
                 <button style="background:var(--g)" onclick="sendSTK()">SEND</button>
             </div>
         </div>
 
         <div class="view" id="v-else">
-            <h3 style="color:var(--p)">SYSTEM</h3>
-            <div class="card"><p>OS v3.1 | Online</p></div>
+            <h3>SYSTEM</h3>
             <button style="background:#222; color:var(--r)" onclick="location.reload()">LOGOUT</button>
         </div>
 
@@ -86,49 +81,46 @@
     </div>
 
 <script>
-    // ПЕРЕВІР ЦІ ДАНІ ЩЕ РАЗ!
+    // КОНФІГУРАЦІЯ
     const BID = "6a04f5aaadc21f119a979f14";
     const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
     
     let db, cur, cloud = 0, loc = 0, isM = false;
 
-    async function login() {
+    // Спрощена функція входу для уникнення помилок
+    async function handleLogin() {
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
         const msg = document.getElementById('msg');
-        const btn = document.getElementById('login-btn');
         
-        if (u === "debug" && p === "111") { startApp("DEBUG", 0); return; }
+        if (!u || !p) return alert("Введіть дані!");
+        
+        if (u === "debug" && p === "111") {
+            startApp("DEBUG", 0);
+            return;
+        }
 
-        btn.disabled = true;
-        msg.style.color = "var(--p)";
-        msg.innerText = "⏳ Підключення до мережі...";
+        msg.innerText = "⏳ З'єднання...";
 
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
-                method: 'GET',
+            const response = await fetch("https://api.jsonbin.io/v3/b/" + BID + "/latest", {
                 headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
             });
 
-            if (!r.ok) {
-                throw new Error(`Сервер відповів помилкою: ${r.status}`);
-            }
+            if (!response.ok) throw new Error("Код помилки: " + response.status);
 
-            const data = await r.json();
+            const data = await response.json();
             db = data.record || data;
 
             if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
                 startApp(u, db.users[u].balance || 0);
             } else {
-                msg.style.color = "var(--r)";
-                msg.innerText = "❌ Невірний логін або пароль";
+                msg.innerText = "❌ Невірно";
+                alert("Логін або пароль не знайдено в базі!");
             }
-        } catch (e) {
-            msg.style.color = "var(--r)";
-            msg.innerText = "⚠️ ПОМИЛКА:\n" + e.message;
-            console.error(e);
-        } finally {
-            btn.disabled = false;
+        } catch (err) {
+            msg.innerText = "⚠️ Помилка";
+            alert("КРИТИЧНА ПОМИЛКА: " + err.message);
         }
     }
 
@@ -139,7 +131,6 @@
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         upd();
-        renderTop();
     }
 
     function tab(id, el) {
@@ -151,3 +142,24 @@
     }
 
     function toggleM() {
+        isM = !isM;
+        const b = document.getElementById('m-btn');
+        b.innerText = isM ? "STOP" : "START";
+        b.classList.toggle('active', isM);
+        if(isM) loop(); else sync();
+    }
+
+    function loop() {
+        if(isM) { loc += 0.00004; upd(); setTimeout(loop, 1000); }
+    }
+
+    function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
+
+    async function sync() {
+        if (cur === "DEBUG") return;
+        document.getElementById('status').innerText = "⏳ ЗБЕРЕЖЕННЯ...";
+        db.users[cur].balance += loc;
+        try {
+            await fetch("https://api.jsonbin.io/v3/b/" + BID, {
+                method: "PUT",
+                header
