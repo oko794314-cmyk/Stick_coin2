@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --p: #07FF; 
+            --p: #0077FF; 
             --bg: radial-gradient(circle at top, #0a1a2e 0%, #000000 100%);
             --card: rgba(15, 15, 30, 0.8);
             --t: #fff; --g: #00ff88; --r: #ff4444; 
@@ -33,7 +33,8 @@
         button:active { transform: scale(0.96); }
 
         /* Кнопка Майнінгу */
-        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
+        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: inset 0 0 20px rgba(0,255,136,0.1); }
+        .m-btn:hover { box-shadow: inset 0 0 20px rgba(0,255,136,0.3); }
         .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 30px rgba(255,68,68,0.2); }
 
         .card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -41,6 +42,8 @@
         nav { display: flex; background: rgba(0,0,0,0.9); border-top: 1px solid #111; padding-bottom: env(safe-area-inset-bottom); }
         .tab { flex: 1; padding: 18px 0; text-align: center; font-size: 11px; color: #444; cursor: pointer; }
         .tab.on { color: var(--p); font-weight: bold; border-top: 2px solid var(--p); }
+
+        .invite-btn { width: auto; padding: 6px 12px; font-size: 10px; background: var(--g); color: #000; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -70,7 +73,10 @@
 
         <div id="v-social" class="view">
             <h3>ТОП ТА ПОШУК</h3>
-            <input type="text" id="f-search" placeholder="Пошук за логіном...">
+            <div class="glass" style="padding: 15px; margin-bottom: 15px;">
+                <input type="text" id="f-search" placeholder="Пошук за логіном...">
+                <button id="f-add" style="background: var(--g); color: #000; font-size: 12px; margin-top: 10px;">ДОДАТИ ДРУГА</button>
+            </div>
             <div id="friends-list" style="margin-top:20px;"></div>
         </div>
 
@@ -82,6 +88,7 @@
         <div id="v-profile" class="view">
             <h3>ПРОФІЛЬ</h3>
             <div class="glass card"><span>ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
+            <div class="glass card"><span>БАЛАНС:</span> <span id="prof-bal" style="color:var(--g)">0.00</span></div>
             <button onclick="location.reload()" style="background:var(--r); margin-top: 40px;">ВИХІД</button>
         </div>
 
@@ -111,23 +118,167 @@
             document.getElementById('abtn').onclick = async () => {
                 const u = document.getElementById('u').value.trim().toLowerCase();
                 const p = document.getElementById('p').value.trim();
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} });
+                
+                if(!u || !p) return alert("Заповніть всі поля!");
+                
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
+                    headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
+                });
                 db = await res.json();
                 
+                if(!db.users) db.users = {};
+                
                 if(isReg) {
-                    if(db.users[u]) return alert("Зайнято!");
-                    db.users[u] = { password: p, balance: 0.0, devices: 1 };
-                    await sync(); location.reload();
-                } else if(db.users[u] && db.users[u].password == p) {
-                    cur = u; cloud = db.users[u].balance;
+                    if(db.users[u]) return alert("Користувач вже існує!");
+                    db.users[u] = { password: p, balance: 0.0, devices: 1, friends: [] };
+                    await sync(); 
+                    alert("Акаунт створено!");
+                    location.reload();
+                } else if(db.users[u] && db.users[u].password === p) {
+                    cur = u; 
+                    cloud = db.users[u].balance || 0;
                     document.getElementById('prof-id').innerText = u;
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('app').style.display = 'flex';
                     checkBackgroundMining();
                     upd();
-                } else alert("Помилка доступу!");
+                    initTabs();
+                } else {
+                    alert("Невірний логін або пароль!");
+                }
             };
 
             // ФУНКЦІЯ ФОНОВОГО МАЙНІНГУ
             function checkBackgroundMining() {
-                c
+                const lastMine = localStorage.getItem(cur + "_lastMine");
+                const now = Date.now();
+                
+                if(lastMine) {
+                    const diff = (now - parseInt(lastMine)) / 1000;
+                    const earned = diff * RATE;
+                    cloud += earned;
+                }
+                
+                localStorage.setItem(cur + "_lastMine", now);
+            }
+
+            // ОНОВЛЕННЯ ІНТЕРФЕЙСУ
+            function upd() {
+                const total = cloud + loc;
+                document.getElementById('bal').innerText = total.toFixed(5);
+                document.getElementById('stat-bal').innerText = total.toFixed(2);
+                document.getElementById('prof-bal').innerText = total.toFixed(2);
+                document.getElementById('stat-nodes').innerText = db.users[cur].devices || 1;
+                document.getElementById('stat-friends').innerText = (db.users[cur].friends || []).length;
+                document.getElementById('m-status').innerText = isM ? "МАЙНІНГ..." : "SYSTEM IDLE";
+            }
+
+            // МАЙНІНГ
+            document.getElementById('mbtn').onclick = () => {
+                if(!isM) {
+                    isM = true;
+                    document.getElementById('mbtn').classList.add('active');
+                    let cnt = 0;
+                    
+                    const tmr = setInterval(() => {
+                        loc += RATE;
+                        upd();
+                        cnt++;
+                        
+                        if(cnt >= 60) {
+                            clearInterval(tmr);
+                            isM = false;
+                            document.getElementById('mbtn').classList.remove('active');
+                            cloud += loc;
+                            loc = 0;
+                            sync();
+                            upd();
+                        }
+                    }, 1000);
+                }
+            };
+
+            // СИНХРОНІЗАЦІЯ З СЕРВЕРОМ
+            async function sync() {
+                if(!cur || !db) return;
+                db.users[cur].balance = cloud;
+                
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                    method: 'PUT',
+                    headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                    body: JSON.stringify(db)
+                });
+                return res.json();
+            }
+
+            // ТАБУЛЯЦІЯ
+            function initTabs() {
+                ['mine', 'social', 'games', 'profile'].forEach((tab) => {
+                    document.getElementById(`t-${tab}`).onclick = () => {
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+                        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+                        document.getElementById(`t-${tab}`).classList.add('on');
+                        document.getElementById(`v-${tab}`).classList.add('on');
+                    };
+                });
+            }
+
+            // ДОДАВАННЯ ДРУГА
+            document.getElementById('f-add').onclick = async () => {
+                const nodeId = document.getElementById('f-search').value.trim().toLowerCase();
+                
+                if(!nodeId || nodeId === cur) {
+                    return alert('Невірний ID');
+                }
+                
+                if(db.users && db.users[nodeId]) {
+                    if(!db.users[cur].friends) db.users[cur].friends = [];
+                    
+                    if(!db.users[cur].friends.includes(nodeId)) {
+                        db.users[cur].friends.push(nodeId);
+                        await sync();
+                        loadFriends();
+                        upd();
+                        alert('Друга додано!');
+                    } else {
+                        alert('Цей користувач вже у ваших друзях');
+                    }
+                } else {
+                    alert('Користувача не знайдено');
+                }
+            };
+
+            // СПИСОК ДРУЗІВ
+            function loadFriends() {
+                const list = document.getElementById('friends-list');
+                list.innerHTML = '';
+                const friends = db.users[cur].friends || [];
+                
+                if(friends.length === 0) {
+                    list.innerHTML = '<p style="color:#555;">Ви ще не маєте друзів</p>';
+                    return;
+                }
+                
+                friends.forEach((f) => {
+                    const friendData = db.users[f] || {};
+                    const div = document.createElement('div');
+                    div.className = 'glass card';
+                    div.innerHTML = `
+                        <div style="text-align:left; flex:1;">
+                            <strong>${f}</strong>
+                            <p style="color:#888; font-size:10px; margin:3px 0;">Баланс: ${(friendData.balance || 0).toFixed(2)}</p>
+                        </div>
+                        <button class="invite-btn" onclick="alert('ВИКЛИК НАДІСЛАНО')">ВИКЛИК</button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            // ОНОВЛЕННЯ КОЖНУ СЕКУНДУ
+            setInterval(() => {
+                if(cur) upd();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
