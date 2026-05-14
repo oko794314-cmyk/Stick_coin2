@@ -30,7 +30,7 @@
         button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; background: var(--p); color: #000; cursor: pointer; transition: 0.2s; }
 
         /* Кнопка Майнінгу */
-        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 40px auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+        .m-btn { width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 40px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
         .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 30px rgba(255,68,68,0.2); }
 
         .view { flex: 1; padding: 20px; display: none; }
@@ -92,48 +92,305 @@
         const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
         let db, cur, cloud = 0, loc = 0, isM = false, isReg = false, loopT = null;
         const BASE_RATE = 1 / 3600;
+        const AUTO_SAVE_INTERVAL = 30000; // 30 секунд
+        let autoSaveInterval = null;
 
         window.onload = async function() {
-            const sU = localStorage.getItem('stk_u');
-            const sP = localStorage.getItem('stk_p');
-            if (sU && sP) login(sU, sP, true);
+            try {
+                // ✅ ПОМИЛКА 1: Виправлено - добавлено try-catch для window.onload
+                const sU = localStorage.getItem('stk_u');
+                const sP = localStorage.getItem('stk_p');
+                
+                if (sU && sP) {
+                    // ✅ ПОМИЛКА 2: Виправлено - додано await для асинхронного login
+                    await login(sU, sP, true);
+                }
 
-            document.getElementById('tlink').onclick = () => {
-                isReg = !isReg;
-                document.querySelector('#auth-screen h2').innerText = isReg ? "REGISTRY" : "STICK OS";
-                document.getElementById('abtn').innerText = isReg ? "CREATE" : "CONNECT";
-            };
+                // ✅ ПОМИЛКА 3: Виправлено - додано перевірку елемента перед призначенням onclick
+                const tlink = document.getElementById('tlink');
+                if (tlink) {
+                    tlink.onclick = () => {
+                        isReg = !isReg;
+                        const title = document.querySelector('#auth-screen h2');
+                        const btn = document.getElementById('abtn');
+                        if (title) title.innerText = isReg ? "REGISTRY" : "STICK OS";
+                        if (btn) btn.innerText = isReg ? "CREATE" : "CONNECT";
+                    };
+                }
 
-            document.getElementById('abtn').onclick = () => {
-                const u = document.getElementById('u').value.trim().toLowerCase();
-                const p = document.getElementById('p').value.trim();
-                if(u && p) login(u, p, false);
-            };
+                // ✅ ПОМИЛКА 8: Виправлено - додано перевірку елемента перед призначенням onclick
+                const abtn = document.getElementById('abtn');
+                if (abtn) {
+                    abtn.onclick = () => {
+                        const u = document.getElementById('u')?.value.trim().toLowerCase() || '';
+                        const p = document.getElementById('p')?.value.trim() || '';
+                        if (u && p) login(u, p, false);
+                    };
+                }
+
+                // ✅ ПОМИЛКА 8: Виправлено - додано перевірку для кнопки майнінгу
+                const mbtn = document.getElementById('mbtn');
+                if (mbtn) {
+                    mbtn.onclick = function() {
+                        if (!isM) {
+                            startM(false);
+                        } else {
+                            stopM();
+                        }
+                    };
+                }
+
+                // ✅ ПОМИЛКА 3: Виправлено - інітіалізація табуляції з перевірками
+                const tabs = ['t-mine', 't-social', 't-profile'];
+                const views = ['v-mine', 'v-social', 'v-profile'];
+                
+                tabs.forEach((tabId, idx) => {
+                    const tab = document.getElementById(tabId);
+                    if (tab) {
+                        tab.onclick = () => {
+                            // Видаляємо клас 'on' зі всіх табів та вьюшок
+                            tabs.forEach(id => {
+                                const t = document.getElementById(id);
+                                if (t) t.classList.remove('on');
+                            });
+                            views.forEach(id => {
+                                const v = document.getElementById(id);
+                                if (v) v.classList.remove('on');
+                            });
+                            // Додаємо клас 'on' до поточного табу та вьюшки
+                            tab.classList.add('on');
+                            const view = document.getElementById(views[idx]);
+                            if (view) view.classList.add('on');
+                        };
+                    }
+                });
+            } catch (e) {
+                console.error("Помилка ініціалізації:", e);
+            }
         };
 
         async function login(u, p, auto) {
             try {
+                // ✅ ПОМИЛКА 4: Виправлено - додано перевірку HTTP статусу
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, { 
                     headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"} 
                 });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status} - Помилка підключення до сервера`);
+                }
+                
                 db = await res.json();
-                if (!db.users) db.users = {};
+                
+                // ✅ ПОМИЛКА 5: Виправлено - інітіалізація об'єкту користувачів
+                if (!db.record) db.record = {};
+                if (!db.record.users) db.record.users = {};
+                
+                db = db.record; // Вирівнювання структури
 
                 if (isReg) {
+                    // Реєстрація
                     if (db.users[u]) return alert("Логін зайнятий!");
-                    db.users[u] = { password: p, balance: 0.0, active_nodes: 0 };
-                    await forceSync();
+                    db.users[u] = { password: p, balance: 0.0, active_nodes: 0, created: new Date().toISOString() };
+                    await forceSync(db);
                     alert("Створено! Тепер ввійдіть.");
                     location.reload();
                     return;
                 }
 
+                // Вхід
+                // ✅ ПОМИЛКА 5: Виправлено - додано перевірку та значення за замовчуванням
                 if (db.users[u] && db.users[u].password == p) {
-                    cur = u; cloud = db.users[u].balance || 0;
-                    localStorage.setItem('stk_u', u); localStorage.setItem('stk_p', p);
+                    cur = u;
+                    cloud = db.users[u].balance || 0;
                     
-                    document.getElementById('prof-id').innerText = u;
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'flex';
+                    // ✅ ПОМИЛКА 6: Виправлено - перевірка елементів перед змінами
+                    const profId = document.getElementById('prof-id');
+                    if (profId) profId.innerText = u;
                     
-                    if (localStorage.getItem('m_on_' + cur) === 'true') startM(true);
+                    const authScreen = document.getElementById('auth-screen');
+                    const appScreen = document.getElementById('app');
+                    
+                    if (authScreen) authScreen.style.display = 'none';
+                    if (appScreen) appScreen.style.display = 'flex';
+                    
+                    // Зберігаємо сесію
+                    localStorage.setItem('stk_u', u);
+                    localStorage.setItem('stk_p', p);
+                    
+                    // ✅ ПОМИЛКА 9: Виправлено - перевірка перед запуском майнінгу
+                    if (localStorage.getItem('m_on_' + cur) === 'true' && !isM) {
+                        startM(true); // true означає "тихий запуск"
+                    }
+                    
+                    upd();
+                    
+                    // ✅ ПОМИЛКА 15: Виправлено - автоматичне збереження кожні 30 секунд
+                    if (!autoSaveInterval) {
+                        autoSaveInterval = setInterval(() => {
+                            if (isM && cur) sync();
+                        }, AUTO_SAVE_INTERVAL);
+                    }
+                } else {
+                    if (!auto) alert("Невірні дані!");
+                    if (auto) {
+                        localStorage.clear();
+                        location.reload();
+                    }
+                }
+            } catch (e) {
+                // ✅ ПОМИЛКА 7 & 17: Виправлено - детальне логування помилок
+                console.error("Помилка зв'язку:", e.message || e);
+                if (!auto) alert("Помилка підключення: " + (e.message || "Невідома помилка"));
+            }
+        }
+
+        function startM(isSilent) {
+            // ✅ ПОМИЛКА 9: Виправлено - перевірка від подвійного запуску
+            if (isM || !cur) return;
+            
+            isM = true;
+            
+            // ✅ ПОМИЛКА 10: Виправлено - ініціалізація активних вузлів
+            if (!db.users[cur].active_nodes) db.users[cur].active_nodes = 0;
+            db.users[cur].active_nodes += 1;
+            
+            // Оновлюємо UI
+            const mbtn = document.getElementById('mbtn');
+            const mStatus = document.getElementById('m-status');
+            
+            if (mbtn) {
+                mbtn.innerText = "STOP";
+                mbtn.classList.add('active');
+            }
+            if (mStatus) mStatus.innerText = "MINING ACTIVE";
+            
+            // Зберігаємо стан
+            localStorage.setItem('m_on_' + cur, 'true');
+            
+            // Запускаємо loop
+            loop();
+            
+            // Відправляємо дані на сервер у фоні, якщо не тихий запуск
+            if (!isSilent) sync();
+        }
+
+        function stopM() {
+            // ✅ ПОМИЛКА 11: Виправлено - перевірка перед зупиненням
+            if (!isM || !cur) return;
+            
+            isM = false;
+            
+            // ✅ ПОМИЛКА 12 & 13: Виправлено - очистка таймаута
+            if (loopT) {
+                clearTimeout(loopT);
+                loopT = null;
+            }
+            
+            // Оновлюємо UI
+            const mbtn = document.getElementById('mbtn');
+            const mStatus = document.getElementById('m-status');
+            
+            if (mbtn) {
+                mbtn.innerText = "START";
+                mbtn.classList.remove('active');
+            }
+            if (mStatus) mStatus.innerText = "SYSTEM STOPPED";
+            
+            // Оновлюємо активні вузли
+            if (db.users[cur].active_nodes > 0) {
+                db.users[cur].active_nodes -= 1;
+            }
+            
+            localStorage.setItem('m_on_' + cur, 'false');
+            
+            // Синхронізуємо з сервером
+            sync();
+        }
+
+        function loop() {
+            if (isM) {
+                // Збільшуємо локальний баланс
+                loc += BASE_RATE;
+                upd();
+                // ✅ ПОМИЛКА 13: Виправлено - зберігаємо ID таймаута
+                loopT = setTimeout(loop, 1000);
+            }
+        }
+
+        function upd() {
+            // ✅ ПОМИЛКА 14: Виправлено - перевірка безпеки перед оновленням
+            if (!cur || !db || !db.users || !db.users[cur]) return;
+            
+            const nodes = db.users[cur].active_nodes || 0;
+            const balance = (cloud + loc).toFixed(5);
+            
+            // Оновлюємо UI з перевірками елементів
+            const bal = document.getElementById('bal');
+            if (bal) bal.innerText = balance;
+            
+            const statBal = document.getElementById('stat-bal');
+            if (statBal) statBal.innerText = (cloud + loc).toFixed(2);
+            
+            const activeNodes = document.getElementById('active-nodes');
+            if (activeNodes) activeNodes.innerText = nodes;
+            
+            const statSpeed = document.getElementById('stat-speed');
+            if (statSpeed) statSpeed.innerText = nodes + "x";
+        }
+
+        async function sync() {
+            // ✅ ПОМИЛКА 15: Виправлено - перевірка безпеки перед синхронізацією
+            if (!cur || !db || !db.users || !db.users[cur]) return;
+            
+            try {
+                // Копіюємо локальний прогрес у базу перед відправкою
+                db.users[cur].balance = cloud + loc;
+                
+                // ✅ ПОМИЛКА 16: Виправлено - перевірка HTTP статусу при синхронізації
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                    method: "PUT", 
+                    headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                    body: JSON.stringify(db)
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Sync HTTP ${res.status}`);
+                }
+                
+                // Після успішного збереження переносимо локальні коїни в "хмару"
+                cloud += loc;
+                loc = 0;
+                
+                console.log("✅ Синхронізація успішна");
+            } catch (e) {
+                // ✅ ПОМИЛКА 17: Виправлено - деталізоване логування помилок синхронізації
+                console.error("❌ Помилка синхронізації:", e.message || e);
+            }
+        }
+
+        async function forceSync(data) {
+            try {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                    method: "PUT",
+                    headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                console.log("✅ Примусова синхронізація успішна");
+            } catch (e) {
+                console.error("❌ Помилка примусової синхронізації:", e);
+            }
+        }
+
+        function logout() {
+            // ✅ Виправлено - очистка всіх таймерів перед виходом
+            if (loopT) clearTimeout(loopT);
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            
+            localStorage.clear();
+            location.reload();
+        }
+    </script>
+</body>
+</html>
