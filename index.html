@@ -2,116 +2,136 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin - Crypto Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stick Coin OS</title>
     <style>
-        body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: #121212; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 90%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #07FF; margin-bottom: 20px; letter-spacing: 2px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #07FF; }
-        button { width: 100%; padding: 14px; background: #07FF; border: none; border-radius: 10px; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #00CCFF; transform: translateY(-2px); }
-        .reg-link { margin-top: 15px; font-size: 13px; color: #888; cursor: pointer; text-decoration: underline; }
-        #msg { color: #07FF; font-size: 12px; margin-top: 10px; min-height: 15px; }
-        #app { display: none; text-align: center; }
+        :root { --p: #07FF; --bg: #050505; --card: #121212; --t: #fff; --g: #00ff88; --r: #ff4444; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--t); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* Авторизація */
+        #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .box { width: 85%; max-width: 320px; text-align: center; padding: 30px; background: var(--card); border-radius: 24px; border: 1px solid #222; }
+        
+        /* Основний застосунок */
+        #app { display: none; flex-direction: column; height: 100vh; }
+        .view { flex: 1; padding: 20px; overflow-y: auto; display: none; animation: fadeIn 0.3s; }
+        .view.on { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Елементи інтерфейсу */
+        .card { background: var(--card); padding: 18px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #222; }
+        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 16px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; background: var(--p); color: #000; }
+        button:active { transform: scale(0.97); }
+        
+        /* Кнопка Майнінгу */
+        .m-btn { width: 180px; height: 180px; border-radius: 50%; border: 8px solid var(--g); background: none; color: var(--g); font-size: 24px; margin: 40px auto; display: block; font-weight: 900; box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+        .m-btn.active { border-color: var(--r); color: var(--r); box-shadow: 0 0 20px rgba(255,68,68,0.2); }
+
+        /* Навігація */
+        nav { display: flex; background: #080808; border-top: 1px solid #181818; padding-bottom: env(safe-area-inset-bottom); }
+        .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 11px; color: #555; cursor: pointer; transition: 0.3s; }
+        .tab.on { color: var(--p); border-top: 2px solid var(--p); background: linear-gradient(to bottom, rgba(7,255,255,0.05), transparent); }
+        
+        .status-bar { padding: 10px; text-align: center; font-size: 10px; color: #444; border-bottom: 1px solid #111; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-    <!-- Екран Входу/Реєстрації -->
-    <div id="auth-screen" class="box">
-        <h1 id="auth-title">STICK COIN</h1>
-        <input type="text" id="u" placeholder="Логін">
-        <input type="password" id="p" placeholder="Пароль">
-        <button id="mainBtn" onclick="handleAuth()">УВІЙТИ</button>
-        <div id="msg"></div>
-        <div class="reg-link" id="toggleLink" onclick="toggleMode()">Немає акаунта? Створити</div>
+    <!-- Екран Входу -->
+    <div id="auth-screen">
+        <div class="box">
+            <h1 id="atitle">STICK<span style="color:var(--p)">COIN</span></h1>
+            <input type="text" id="u" placeholder="Логін">
+            <input type="password" id="p" placeholder="Пароль">
+            <button id="abtn" onclick="handleAuth()">УВІЙТИ</button>
+            <div id="amsg" style="margin-top:15px; font-size:12px; color:var(--p)"></div>
+            <div onclick="toggleMode()" id="tlink" style="margin-top:20px; font-size:13px; color:#666; text-decoration:underline">Немає акаунта? Створити</div>
+        </div>
     </div>
 
-    <!-- Екран Гри (з'явиться після входу) -->
-    <div id="app" class="box">
-        <h1>ВІТАЄМО!</h1>
-        <p>Ти в системі, <span id="user-display" style="color:#07FF"></span></p>
-        <button onclick="location.reload()">ВИЙТИ</button>
+    <!-- Основний екран -->
+    <div id="app">
+        <div class="status-bar">NODE: <span id="utag" style="color:var(--p)">---</span></div>
+
+        <!-- Вкладка: Майнінг -->
+        <div class="view on" id="v-mine">
+            <div style="text-align:center; margin-top:20px">
+                <p style="color:#666; margin-bottom:5px">ВАШ БАЛАНС</p>
+                <h1 id="bal" style="font-size:3.5rem; margin:0; font-family: monospace;">0.00000</h1>
+                <button id="m-btn" class="m-btn" onclick="toggleM()">START</button>
+                <p id="m-status" style="color:#444">READY TO WORK</p>
+            </div>
+        </div>
+
+        <!-- Вкладка: ТОП -->
+        <div class="view" id="v-top">
+            <h3 style="margin-bottom:20px">TOP HOLDERS</h3>
+            <div id="top-list"></div>
+        </div>
+
+        <!-- Вкладка: Перекази -->
+        <div class="view" id="v-tx">
+            <h3>SEND COINS</h3>
+            <div class="card">
+                <input type="text" id="tx-to" placeholder="Кому (логін)">
+                <input type="number" id="tx-amt" placeholder="Сума">
+                <button style="background:var(--g)" onclick="sendSTK()">ВІДПРАВИТИ</button>
+            </div>
+            <p style="font-size:11px; color:#555">Комісія мережі: 0%</p>
+        </div>
+
+        <!-- Вкладка: Система -->
+        <div class="view" id="v-sys">
+            <h3>SYSTEM</h3>
+            <div class="card">
+                <p>Версія: 4.0 Stable</p>
+                <p>Мережа: Mainnet</p>
+            </div>
+            <button style="background:#222; color:var(--r)" onclick="location.reload()">ВИЙТИ З АКАУНТА</button>
+        </div>
+
+        <!-- Меню -->
+        <nav>
+            <div class="tab on" onclick="tab('mine', this)">MINE</div>
+            <div class="tab" onclick="tab('top', this)">TOP</div>
+            <div class="tab" onclick="tab('tx', this)">SEND</div>
+            <div class="tab" onclick="tab('sys', this)">SYS</div>
+        </nav>
     </div>
 
-    <script>
-        const BID = "6a04f5aaadc21f119a979f14";
-        const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
-        
-        let isRegMode = false;
+<script>
+    const BID = "6a04f5aaadc21f119a979f14";
+    const KEY = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+    
+    let db, cur, cloud = 0, loc = 0, isM = false, isReg = false;
 
-        // Перемикач між Входом та Реєстрацією
-        function toggleMode() {
-            isRegMode = !isRegMode;
-            document.getElementById('auth-title').innerText = isRegMode ? "РЕЄСТРАЦІЯ" : "STICK COIN";
-            document.getElementById('mainBtn').innerText = isRegMode ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
-            document.getElementById('toggleLink').innerText = isRegMode ? "Вже є акаунт? Увійти" : "Немає акаунта? Створити";
-            document.getElementById('msg').innerText = "";
-        }
+    function toggleMode() {
+        isReg = !isReg;
+        document.getElementById('atitle').innerHTML = isReg ? "REGISTRY" : "STICK<span style='color:var(--p)'>COIN</span>";
+        document.getElementById('abtn').innerText = isReg ? "ЗАРЕЄСТРУВАТИСЯ" : "УВІЙТИ";
+        document.getElementById('tlink').innerText = isReg ? "Вже є акаунт? Увійти" : "Немає акаунта? Створити";
+    }
 
-        async function handleAuth() {
-            const u = document.getElementById('u').value.trim().toLowerCase();
-            const p = document.getElementById('p').value.trim();
-            const msg = document.getElementById('msg');
+    async function handleAuth() {
+        const u = document.getElementById('u').value.trim().toLowerCase();
+        const p = document.getElementById('p').value.trim();
+        const msg = document.getElementById('amsg');
+        if(!u || !p) return alert("Заповни поля!");
 
-            if (u.length < 3 || p.length < 3) {
-                alert("Логін та пароль мають бути не менше 3 символів!");
-                return;
-            }
+        msg.innerText = "⏳ Connecting...";
+        try {
+            const res = await fetch("https://api.jsonbin.io/v3/b/"+BID+"/latest", { headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
+            db = await res.json();
 
-            msg.innerText = "⏳ Завантаження...";
-
-            try {
-                // 1. Отримуємо поточну базу даних
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
-                    headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }
-                });
-                const db = await res.json();
-
-                if (isRegMode) {
-                    // --- ЛОГІКА РЕЄСТРАЦІЇ ---
-                    if (db.users[u]) {
-                        msg.innerText = "❌ Цей логін уже зайнятий";
-                        return;
-                    }
-
-                    // Додаємо нового юзера в об'єкт
-                    db.users[u] = {
-                        password: p,
-                        balance: 10.0 // Початковий бонус
-                    };
-
-                    // Відправляємо оновлену базу назад
-                    const saveRes = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                        method: 'PUT',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-Master-Key": KEY
-                        },
-                        body: JSON.stringify(db)
-                    });
-
-                    if (saveRes.ok) {
-                        alert("Реєстрація успішна! Тепер увійдіть.");
-                        toggleMode();
-                    }
-                } else {
-                    // --- ЛОГІКА ВХОДУ ---
-                    if (db.users[u] && String(db.users[u].password) === String(p)) {
-                        document.getElementById('auth-screen').style.display = 'none';
-                        document.getElementById('app').style.display = 'block';
-                        document.getElementById('user-display').innerText = u.toUpperCase();
-                    } else {
-                        msg.innerText = "❌ Невірний логін або пароль";
-                    }
-                }
-            } catch (err) {
-                alert("Помилка: " + err.message);
-                msg.innerText = "";
-            }
-        }
-    </script>
-</body>
-</html>
+            if(isReg) {
+                if(db.users[u]) return alert("Логін зайнятий!");
+                db.users[u] = { password: p, balance: 10 };
+                await sync();
+                alert("Успіх! Тепер увійди.");
+                toggleMode();
+            } else {
+                if(db.users[u] && String(db.users[u].password) === String(p)) {
+                    cur = u; cloud = db.users[u].balance;
+                    document.getEl
