@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick-Coin Network | Пул Майнінгу</title>
+    <style>
+        :root {
+            --neon: #00ffcc;
+            --bg: #0a0a0a;
+            --card-bg: #161616;
+            --text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        h1 { color: var(--neon); letter-spacing: 2px; margin-bottom: 30px; }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: #666;
+            transition: 0.3s;
+        }
+
+        .tab.active {
+            color: var(--neon);
+            border-bottom: 2px solid var(--neon);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--neon);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: #fff; transform: translateY(-2px); }
+
+        .balance-display {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,255,204,0.3);
+        }
+
+        .friends-list {
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #0f0f0f;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 5px;
+            border-bottom: 1px solid #222;
+            font-size: 14px;
+        }
+
+        .hidden { display: none; }
+        #status { font-size: 12px; color: #555; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>STICK-COIN</h1>
+
+    <div id="login-section">
+        <input type="text" id="user-input" placeholder="Логін вашої ферми">
+        <input type="password" id="pass-input" placeholder="Пароль">
+        <button class="btn" onclick="auth()">Підключитися</button>
+    </div>
+
+    <div id="main-section" class="hidden">
+        <div class="nav-tabs">
+            <div class="tab active" id="tab-mine-btn" onclick="switchTab('mine')">Майнінг</div>
+            <div class="tab" id="tab-friends-btn" onclick="switchTab('friends')">Друзі</div>
+            <div class="tab" id="tab-transfer-btn" onclick="switchTab('transfer')">Переказ</div>
+        </div>
+
+        <div id="tab-mine">
+            <p id="farm-name" style="color: var(--neon);"></p>
+            <div class="balance-display" id="bal-val">0.0000</div>
+            <button class="btn" onclick="mineClick()">КЛІКАТИ (МАЙНИТИ)</button>
+        </div>
+
+        <div id="tab-friends" class="hidden">
+            <h3>Список активних ферм</h3>
+            <div class="friends-list" id="friends-display"></div>
+        </div>
+
+        <div id="tab-transfer" class="hidden">
+            <h3>Надіслати монети</h3>
+            <input type="text" id="target-user" placeholder="Кому (Логін)">
+            <input type="number" id="transfer-amount" placeholder="Кількість">
+            <button class="btn" onclick="processTransfer()">Відправити</button>
+        </div>
+    </div>
+
+    <div id="status">Очікування авторизації...</div>
+</div>
+
+<script>
+    // --- ТВОЇ ДАНІ ВЖЕ ВПИСАНІ ---
+    const binID = "6a04f5aaadc21f119a979f14"; 
+    const masterKey = "$2a$10$7yePq6PbDAjjMpk4.gfkWeIOrhlJpxaX7Io9/IM0FevWs37W5eaea";
+    const apiUrl = `https://api.jsonbin.io/v3/b/${binID}`;
+
+    let currentUser = "";
+    let userData = null;
+
+    async function auth() {
+        const u = document.getElementById('user-input').value;
+        const p = document.getElementById('pass-input').value;
+        if(!u || !p) return;
+
+        updateStatus("Підключення...");
+        try {
+            const res = await fetch(apiUrl + "/latest", { headers: {"X-Master-Key": masterKey} });
+            const data = await res.json();
+            userData = data.record;
+
+            if(!userData.users[u]) {
+                userData.users[u] = { pass: p, balance: 0 };
+                await save();
+                updateStatus("Створено нову ферму!");
+            } else if(userData.users[u].pass !== p) {
+                updateStatus("Помилка: Невірний пароль!");
+                return;
+            }
+
+            currentUser = u;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('main-section').classList.remove('hidden');
+            document.getElementById('farm-name').innerText = "Активна ферма: " + u;
+            
+            refreshUI();
+            setInterval(refreshUI, 5000);
+        } catch(e) { updateStatus("Помилка мережі"); }
+    }
+
+    function switchTab(tabName) {
+        document.getElementById('tab-mine').classList.add('hidden');
+        document.getElementById('tab-friends').classList.add('hidden');
+        document.getElementById('tab-transfer').classList.add('hidden');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-' + tabName + '-btn').classList.add('active');
+        if(tabName === 'friends') loadFriends();
+    }
+
+    async function refreshUI() {
+        try {
+            const res = await fetch(apiUrl + "/latest", { headers: {"X-Master-Key": masterKey} });
+            const data = await res.json();
+            userData = data.record;
+            document.getElementById('bal-val').innerText = userData.users[currentUser].balance.toFixed(5);
+            updateStatus("Синхронізовано");
+        } catch(e) {}
+    }
+
+    async function mineClick() {
+        userData.users[currentUser].balance += 0.0005;
+        document.getElementById('bal-val').innerText = userData.users[currentUser].balance.toFixed(5);
+        await save();
+    }
+
+    function loadFriends() {
+        const list = document.getElementById('friends-display');
+        list.innerHTML = "";
+        for(let user in userData.users) {
+            list.innerHTML += `<div class="friend-item"><span>${user}</span><span>${userData.users[user].balance.toFixed(4)} STK</span></div>`;
+        }
+    }
+
+    async function processTransfer() {
+        const to = document.getElementById('target-user').value;
+        const amount = parseFloat(document.getElementById('transfer-amount').value);
+        if(!userData.users[to]) return alert("Користувача не знайдено!");
+        if(userData.users[currentUser].balance < amount) return alert("Недостатньо коштів!");
+        userData.users[currentUser].balance -= amount;
+        userData.users[to].balance += amount;
+        await save();
+        alert("Переказ завершено!");
+        switchTab('mine');
+    }
+
+    async function save() {
+        await fetch(apiUrl, {
+            method: 'PUT',
+            headers: {"X-Master-Key": masterKey, "Content-Type": "application/json"},
+            body: JSON.stringify(userData)
+        });
+    }
+
+    function updateStatus(msg) { document.getElementById('status').innerText = msg; }
+</script>
+</body>
+</html>
+
