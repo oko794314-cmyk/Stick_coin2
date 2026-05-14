@@ -2,74 +2,98 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STICK FARM ULTIMATE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>STICK FARM PRO ULTRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --p: #0077ff; --p-dark: #0044ff;
-            --bg: #050505; --card: rgba(20, 20, 35, 0.85);
+            --p: #07FF; --bg: #030303; --card: rgba(15, 15, 25, 0.95);
             --t: #ffffff; --g: #00ff88; --r: #ff3366; --gold: #ffcc00;
         }
-        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
         
-        /* Background Animation */
-        body::before {
-            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(45deg, #0a0a2e 0%, #000 50%, #1a0a2e 100%);
-            z-index: -1; opacity: 0.8;
+        body { 
+            background: var(--bg); 
+            color: var(--t); 
+            margin: 0; 
+            height: 100vh; 
+            height: -webkit-fill-available; /* Для iOS */
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
         }
 
-        .glass { background: var(--card); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(circle at 50% 0%, #0a1a3e 0%, #000 70%);
+            z-index: -1;
+        }
 
-        /* Auth */
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
+
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .auth-box { width: 88%; max-width: 340px; padding: 40px 25px; text-align: center; }
-        h2 { font-weight: 900; letter-spacing: 3px; margin-bottom: 25px; font-size: 24px; }
+        .auth-box { width: 85%; max-width: 340px; padding: 40px 25px; text-align: center; }
 
-        input { width: 100%; padding: 14px; margin: 10px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 12px; transition: 0.3s; }
-        input:focus { border-color: var(--p); box-shadow: 0 0 15px rgba(7,255,255,0.2); }
-        .main-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; background: var(--p); color: #000; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .main-btn:hover { background: #fff; transform: translateY(-2px); }
+        input { width: 100%; padding: 14px; margin: 8px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 12px; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; background: var(--p); color: #000; cursor: pointer; text-transform: uppercase; }
 
-        /* App */
         #app { display: none; flex-direction: column; height: 100vh; }
-        .header { padding: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.4); border-bottom: 1px solid #222; }
+
+        .header { 
+            padding: 15px 10px; 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            background: rgba(0,0,0,0.8); 
+            border-bottom: 1px solid #222;
+            padding-top: env(safe-area-inset-top, 15px);
+        }
         .h-item { text-align: center; }
-        .h-label { font-size: 9px; color: #777; letter-spacing: 1px; margin-bottom: 5px; display: block; }
-        .h-val { font-size: 14px; color: var(--p); font-weight: 600; }
+        .h-label { font-size: 8px; color: #666; display: block; }
+        .h-val { font-size: 13px; color: var(--p); font-weight: 700; }
 
-        /* Mining View */
-        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; }
-        .view.on { display: block; animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; padding-bottom: 40px; }
+        .view.on { display: block; }
 
-        #bal { font-size: 3.2rem; font-weight: 900; margin: 40px 0 10px 0; text-align: center; background: linear-gradient(to bottom, #fff, var(--p)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .lvl-bar { width: 150px; height: 4px; background: #222; margin: 0 auto 40px auto; border-radius: 2px; overflow: hidden; }
-        #lvl-progress { height: 100%; width: 0%; background: var(--p); transition: 0.5s; }
+        #bal { font-size: 2.8rem; font-weight: 900; text-align: center; margin: 25px 0; color: var(--p); text-shadow: 0 0 15px var(--p); }
+        
+        .m-orb { 
+            width: 170px; height: 170px; border-radius: 50%; 
+            border: 4px solid var(--g); margin: 0 auto; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; position: relative; font-weight: 900;
+        }
+        .m-orb.active { border-color: var(--r); box-shadow: 0 0 30px var(--r); }
 
-        /* Central Orb */
-        .orb-wrap { position: relative; width: 200px; height: 200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
-        .m-orb { width: 170px; height: 170px; border-radius: 50%; border: 4px solid var(--g); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.4s; position: relative; font-weight: 900; letter-spacing: 2px; }
-        .m-orb::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--g); opacity: 0.3; animation: pulse 2s infinite; }
-        .m-orb.active { border-color: var(--r); color: var(--r); }
-        .m-orb.active::after { border-color: var(--r); }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.3); opacity: 0; } }
+        .item-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 
-        /* Social/Top */
-        .top-item { padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
-        .rank { width: 30px; font-weight: 900; color: var(--p); }
-        .u-info { flex: 1; }
-        .u-name { font-size: 14px; font-weight: 600; }
-        .u-bal { font-size: 12px; color: var(--g); }
+        /* НАВІГАЦІЯ - ВИПРАВЛЕНО */
+        nav { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            background: #000; 
+            border-top: 1px solid #222; 
+            padding-top: 10px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px)); /* Піднімає іконки вище смуги iOS */
+            min-height: 70px;
+        }
+        .tab { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center; 
+            font-size: 10px; /* Збільшено шрифт */
+            color: #444; 
+            cursor: pointer; 
+            font-weight: 600;
+        }
+        .tab.on { 
+            color: var(--p); 
+            transform: translateY(-3px); /* Легкий підйом активної вкладки */
+            transition: 0.2s;
+        }
+        .tab-icon { font-size: 22px; margin-bottom: 4px; } /* Місце під іконку або емодзі */
 
-        /* Nav */
-        nav { display: flex; background: #000; padding: 10px 0 30px 0; border-top: 1px solid #222; }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; transition: 0.3s; position: relative; }
-        .tab svg { width: 24px; height: 24px; fill: #444; transition: 0.3s; }
-        .tab.on svg { fill: var(--p); filter: drop-shadow(0 0 5px var(--p)); }
-        .tab.on::after { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background: var(--p); border-radius: 0 0 5px 5px; }
     </style>
 </head>
 <body>
@@ -77,197 +101,61 @@
     <div id="auth-screen">
         <div class="auth-box glass">
             <h2>STICK<span style="color:var(--p)">FARM</span></h2>
-            <input type="text" id="u" placeholder="ЛОГІН" spellcheck="false">
+            <input type="text" id="u" placeholder="ЛОГІН">
             <input type="password" id="p" placeholder="ПАРОЛЬ">
-            <button id="abtn" class="main-btn">УВІЙТИ</button>
-            <div id="tlink" style="margin-top:20px; font-size:10px; color:#555; cursor:pointer;">НЕМАЄ АКАУНТА? СТВОРИТИ</div>
+            <button id="abtn" class="btn">CONNECT</button>
+            <div id="tlink" style="margin-top:20px; font-size:10px; color:#555;">РЕЄСТРАЦІЯ</div>
         </div>
     </div>
 
     <div id="app">
         <div class="header">
-            <div class="h-item"><span class="h-label">STATUS</span><span id="h-status" class="h-val">OFFLINE</span></div>
+            <div class="h-item"><span class="h-label">BALANCE</span><span id="h-bal" class="h-val">0.00</span></div>
             <div class="h-item"><span class="h-label">LEVEL</span><span id="h-lvl" class="h-val">1</span></div>
             <div class="h-item"><span class="h-label">NODES</span><span id="h-nodes" class="h-val">0</span></div>
         </div>
 
         <div id="v-mine" class="view on">
             <div id="bal">0.00000</div>
-            <div class="lvl-bar"><div id="lvl-progress"></div></div>
-            
-            <div class="orb-wrap">
-                <div id="mbtn" class="m-orb">
-                    <span id="m-text">START</span>
-                </div>
-            </div>
-            <p id="m-msg" style="text-align:center; color:#444; font-size:11px; margin-top:30px;">READY TO INITIALIZE</p>
+            <div id="mbtn" class="m-orb">START</div>
+            <p style="text-align:center; margin-top:30px; font-size:10px; color:var(--g);">SYSTEM ACTIVE</p>
         </div>
 
         <div id="v-social" class="view">
-            <h3 style="text-align:center; margin-bottom:20px; font-size:14px;">LEADERBOARD</h3>
+            <h4 style="margin-bottom:15px">LEADERBOARD</h4>
             <div id="leaderboard"></div>
         </div>
 
-        <div id="v-settings" class="view">
-            <h3 style="text-align:center; margin-bottom:20px; font-size:14px;">SYSTEM SETTINGS</h3>
-            <div class="glass top-item">
-                <div class="u-info">
-                    <div class="u-name">AUTO-SYNC</div>
-                    <div style="font-size: 11px; color: #666;">Автоматична синхронізація</div>
-                </div>
-                <div style="width: 50px; height: 24px; background: #222; border-radius: 12px; cursor: pointer;"></div>
+        <div id="v-tx" class="view">
+            <h4>TRANSFER</h4>
+            <div class="glass" style="padding:20px">
+                <input type="text" id="tx-to" placeholder="RECIPIENT">
+                <input type="number" id="tx-amt" placeholder="AMOUNT">
+                <button onclick="sendSTK()" class="btn">SEND</button>
             </div>
-            <div class="glass top-item">
-                <div class="u-info">
-                    <div class="u-name">NOTIFICATIONS</div>
-                    <div style="font-size: 11px; color: #666;">Увімкнути сповіщення</div>
-                </div>
-                <div style="width: 50px; height: 24px; background: #222; border-radius: 12px; cursor: pointer;"></div>
+        </div>
+
+        <div id="v-games" class="view">
+            <h4>CASINO</h4>
+            <div class="glass" style="padding:20px; text-align:center;">
+                <input type="number" id="bet-amt" placeholder="BET STK">
+                <button onclick="playDouble()" class="btn" style="background:var(--gold); margin-top:10px;">PLAY DOUBLE</button>
             </div>
-            <button id="logout" class="main-btn" style="margin-top: 20px;">ВИЙТИ</button>
+        </div>
+
+        <div id="v-os" class="view">
+            <h4>OS</h4>
+            <div class="glass item-card"><span>ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
+            <button onclick="logout()" class="btn" style="background:var(--r); color:#fff; margin-top:20px;">EXIT</button>
         </div>
 
         <nav>
-            <div class="tab on" data-view="v-mine">
-                <svg viewBox="0 0 24 24"><path d="M13 13h8v8h-8v-8zm-11 0h8v8H2v-8zm11-9h8v8h-8V4zM2 4h8v8H2V4z"/></svg>
-            </div>
-            <div class="tab" data-view="v-social">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            </div>
-            <div class="tab" data-view="v-settings">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.64l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.92l-.36-2.54c-.04-.24-.24-.41-.5-.41h-3.84c-.26 0-.46.17-.49.41l-.36 2.54c-.59.22-1.13.54-1.62.92l-2.39-.96c-.22-.09-.47 0-.59.22L2.74 8.87c-.12.22-.07.5.12.64l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.92l.36 2.54c.05.24.24.41.5.41h3.84c.26 0 .46-.17.49-.41l.36-2.54c.59-.22 1.13-.54 1.62-.92l2.39.96c.22.09.47 0 .59-.22l1.92-3.32c.12-.22.07-.5-.12-.64l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            </div>
+            <div class="tab on" id="t-mine"><div class="tab-icon">⛏️</div>MINE</div>
+            <div class="tab" id="t-social"><div class="tab-icon">🏆</div>TOP</div>
+            <div class="tab" id="t-tx"><div class="tab-icon">💸</div>SEND</div>
+            <div class="tab" id="t-games"><div class="tab-icon">🎰</div>GAME</div>
+            <div class="tab" id="t-os"><div class="tab-icon">⚙️</div>OS</div>
         </nav>
     </div>
 
     <script>
-        // Базова конфігурація
-        const config = {
-            apiUrl: 'https://your-backend.com/api',
-            refreshInterval: 5000
-        };
-
-        // Елементи DOM
-        const authScreen = document.getElementById('auth-screen');
-        const app = document.getElementById('app');
-        const uInput = document.getElementById('u');
-        const pInput = document.getElementById('p');
-        const aBtn = document.getElementById('abtn');
-        const tLink = document.getElementById('tlink');
-        const mbtn = document.getElementById('mbtn');
-        const mText = document.getElementById('m-text');
-        const mMsg = document.getElementById('m-msg');
-        const bal = document.getElementById('bal');
-        const tabs = document.querySelectorAll('.tab');
-
-        // Стан користувача
-        let user = {
-            username: '',
-            balance: 0,
-            level: 1,
-            nodes: 0,
-            mining: false
-        };
-
-        let mineInterval = null;
-
-        // Вхід
-        aBtn.addEventListener('click', () => {
-            const username = uInput.value.trim();
-            const password = pInput.value.trim();
-            
-            if (username && password) {
-                user.username = username;
-                authScreen.style.display = 'none';
-                app.style.display = 'flex';
-                updateUI();
-            }
-        });
-
-        // Виход
-        document.getElementById('logout').addEventListener('click', () => {
-            user = { username: '', balance: 0, level: 1, nodes: 0, mining: false };
-            if (mineInterval) clearInterval(mineInterval);
-            authScreen.style.display = 'flex';
-            app.style.display = 'none';
-            uInput.value = '';
-            pInput.value = '';
-        });
-
-        // Гірництво
-        mbtn.addEventListener('click', () => {
-            user.mining = !user.mining;
-            mbtn.classList.toggle('active');
-            mText.textContent = user.mining ? 'MINING' : 'START';
-            
-            if (user.mining) {
-                startMining();
-            } else {
-                if (mineInterval) clearInterval(mineInterval);
-                mineInterval = null;
-            }
-        });
-
-        function startMining() {
-            if (mineInterval) clearInterval(mineInterval);
-            mineInterval = setInterval(() => {
-                if (!user.mining) {
-                    clearInterval(mineInterval);
-                    mineInterval = null;
-                    return;
-                }
-                user.balance += 0.001;
-                user.level = Math.floor(user.balance / 10) + 1;
-                updateUI();
-            }, 1000);
-        }
-
-        // Оновлення UI
-        function updateUI() {
-            bal.textContent = user.balance.toFixed(5);
-            document.getElementById('h-lvl').textContent = user.level;
-            document.getElementById('h-nodes').textContent = user.nodes;
-            document.getElementById('h-status').textContent = user.mining ? 'MINING' : 'ONLINE';
-            
-            const lvlProgress = (user.balance % 10) / 10 * 100;
-            document.getElementById('lvl-progress').style.width = lvlProgress + '%';
-        }
-
-        // Навігація
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const viewId = tab.dataset.view;
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-                
-                document.getElementById(viewId).classList.add('on');
-                tab.classList.add('on');
-            });
-        });
-
-        // Таблиця лідерів
-        const leaderboard = [
-            { rank: 1, name: 'ПроГравець', balance: 1000 },
-            { rank: 2, name: 'МіньйорПро', balance: 850 },
-            { rank: 3, name: 'КріпОсинок', balance: 750 }
-        ];
-
-        function renderLeaderboard() {
-            const lb = document.getElementById('leaderboard');
-            lb.innerHTML = leaderboard.map(item => `
-                <div class="top-item glass">
-                    <div class="rank">#${item.rank}</div>
-                    <div class="u-info">
-                        <div class="u-name">${item.name}</div>
-                        <div class="u-bal">${item.balance.toFixed(5)} STICK</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Ініціалізація
-        renderLeaderboard();
-        updateUI();
-    </script>
-</body>
-</html>
