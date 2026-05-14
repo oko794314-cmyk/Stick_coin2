@@ -3,27 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stick Coin Fix</title>
+    <title>Stick Coin OS | Final Fix</title>
     <style>
         :root { --p: #07FF; --bg: #050505; --card: #111; --t: #fff; --g: #00ff88; --r: #ff4444; }
-        body { background: var(--bg); color: var(--t); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
+        body { background: var(--bg); color: var(--t); font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .box { width: 280px; text-align: center; padding: 20px; background: var(--card); border-radius: 15px; border: 1px solid #333; }
-        
+        .box { width: 300px; text-align: center; padding: 25px; background: var(--card); border-radius: 20px; border: 1px solid #333; }
         #app { display: none; flex-direction: column; height: 100vh; }
         .view { flex: 1; padding: 20px; display: none; overflow-y: auto; }
         .view.on { display: block; }
-        
-        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #222; }
-        input { width: 100%; padding: 10px; margin: 5px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        
-        .m-btn { width: 150px; height: 150px; border-radius: 50%; border: 5px solid var(--g); background: none; color: var(--g); font-size: 20px; margin: 20px auto; display: block; }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #222; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background: var(--p); color: #000; }
+        .m-btn { width: 160px; height: 160px; border-radius: 80px; border: 6px solid var(--g); background: none; color: var(--g); font-size: 22px; margin: 20px auto; display: block; font-weight: bold; }
         .m-btn.active { border-color: var(--r); color: var(--r); }
-
         nav { display: flex; background: #080808; border-top: 1px solid #222; }
-        .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 10px; color: #555; cursor: pointer; }
+        .tab { flex: 1; padding: 15px 0; text-align: center; font-size: 11px; color: #555; cursor: pointer; }
         .tab.on { color: var(--p); }
     </style>
 </head>
@@ -31,41 +26,44 @@
 
     <div id="auth-screen">
         <div class="box">
-            <h2>STICK COIN</h2>
+            <h1 style="letter-spacing:2px">STICK<span style="color:var(--p)">COIN</span></h1>
             <input type="text" id="u" placeholder="Логін">
             <input type="password" id="p" placeholder="Пароль">
-            <button style="background:var(--p)" onclick="login()">УВІЙТИ</button>
-            <p id="msg" style="color:var(--r); font-size:12px"></p>
+            <button onclick="login()">УВІЙТИ</button>
+            <p id="msg" style="color:var(--r); font-size:12px; margin-top:10px"></p>
         </div>
     </div>
 
     <div id="app">
-        <div style="padding:10px; text-align:center; font-size:12px; border-bottom:1px solid #222">USER: <span id="tag" style="color:var(--p)"></span></div>
+        <div style="padding:15px; text-align:center; font-size:12px; border-bottom:1px solid #222">ACTIVE NODE: <span id="tag" style="color:var(--p)"></span></div>
 
         <div class="view on" id="v-mine">
-            <h1 id="bal" style="text-align:center; font-size:3rem; margin:20px 0">0.00000</h1>
+            <h1 id="bal" style="text-align:center; font-size:3.5rem; margin:20px 0; font-family:monospace">0.00000</h1>
             <button id="m-btn" class="m-btn" onclick="toggleM()">START</button>
-            <p id="status" style="text-align:center; font-size:10px; color:#444">READY</p>
+            <p id="status" style="text-align:center; font-size:11px; color:#444">STABLE</p>
         </div>
 
         <div class="view" id="v-top">
-            <h3>TOP PLAYERS</h3>
+            <h3 style="color:var(--p)">TOP HOLDERS</h3>
             <div id="top-list" class="card">Завантаження...</div>
         </div>
 
         <div class="view" id="v-tx">
-            <h3>SEND COINS</h3>
+            <h3 style="color:var(--g)">SEND STK</h3>
             <div class="card">
-                <input type="text" id="tx-to" placeholder="Кому">
-                <input type="number" id="tx-amt" placeholder="Скільки">
-                <button style="background:var(--g)" onclick="sendSTK()">SEND</button>
+                <input type="text" id="tx-to" placeholder="Отримувач">
+                <input type="number" id="tx-amt" placeholder="Сума">
+                <button style="background:var(--g); color:#000" onclick="sendSTK()">SEND COINS</button>
             </div>
         </div>
 
         <div class="view" id="v-else">
-            <h3>SYSTEM</h3>
-            <div class="card">OS Version: 2.5 Fix</div>
-            <button style="background:var(--r)" onclick="location.reload()">LOGOUT</button>
+            <h3 style="color:var(--p)">SYSTEM</h3>
+            <div class="card">
+                <p>Version: 2.6 Ultimate</p>
+                <p>Status: Online</p>
+            </div>
+            <button style="background:#222; color:var(--r)" onclick="location.reload()">LOGOUT</button>
         </div>
 
         <nav>
@@ -84,19 +82,30 @@
     async function login() {
         const u = document.getElementById('u').value.trim();
         const p = document.getElementById('p').value.trim();
-        document.getElementById('msg').innerText = "⏳ Завантаження...";
+        const msg = document.getElementById('msg');
+        msg.innerText = "⏳ З'єднання...";
+        
         try {
-            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {headers:{"X-Master-Key":KEY, "X-Bin-Meta":"false"}});
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}/latest`, {
+                headers: {"X-Master-Key": KEY, "X-Bin-Meta": "false"}
+            });
             const data = await r.json();
-            db = data.record ? data.record : data;
-            if(db.users[u] && String(db.users[u].password) === String(p)) {
-                cur = u; cloud = db.users[u].balance || 0;
-                document.getElementById('tag').innerText = u;
+            db = data.record || data;
+
+            if (db.users && db.users[u] && String(db.users[u].password) === String(p)) {
+                cur = u;
+                cloud = db.users[u].balance || 0;
+                document.getElementById('tag').innerText = u.toUpperCase();
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
                 upd(); renderTop();
-            } else { document.getElementById('msg').innerText = "❌ Помилка"; }
-        } catch(e) { document.getElementById('msg').innerText = "⚠️ Помилка мережі"; }
+            } else {
+                msg.innerText = "❌ Невірний логін або пароль";
+            }
+        } catch (e) {
+            msg.innerText = "⚠️ Помилка мережі. Спробуй ще раз.";
+            console.error(e);
+        }
     }
 
     function tab(id, el) {
@@ -109,35 +118,43 @@
     function toggleM() {
         isM = !isM;
         const b = document.getElementById('m-btn');
-        if(isM) { b.innerText = "STOP"; b.classList.add('active'); loop(); }
-        else { b.innerText = "START"; b.classList.remove('active'); sync(); }
+        if(isM) {
+            b.innerText = "STOP";
+            b.classList.add('active');
+            loop();
+        } else {
+            b.innerText = "START";
+            b.classList.remove('active');
+            sync();
+        }
     }
 
-    function loop() { if(isM) { loc += 0.00003; upd(); setTimeout(loop, 1000); } }
-    function upd() { document.getElementById('bal').innerText = (cloud + loc).toFixed(5); }
+    function loop() {
+        if(isM) {
+            loc += 0.00005;
+            upd();
+            setTimeout(loop, 1000);
+        }
+    }
+
+    function upd() {
+        document.getElementById('bal').innerText = (cloud + loc).toFixed(5);
+    }
 
     async function sync() {
-        document.getElementById('status').innerText = "⏳ Збереження...";
+        document.getElementById('status').innerText = "⏳ ЗБЕРЕЖЕННЯ...";
         db.users[cur].balance += loc;
         try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
-                method: "PUT", headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
+            const r = await fetch(`https://api.jsonbin.io/v3/b/${BID}`, {
+                method: "PUT",
+                headers: {"X-Master-Key": KEY, "Content-Type": "application/json"},
                 body: JSON.stringify(db)
             });
-            cloud += loc; loc = 0;
-            document.getElementById('status').innerText = "✅ Збережено";
-            renderTop();
-        } catch(e) { document.getElementById('status').innerText = "❌ Помилка"; }
-    }
-
-    function renderTop() {
-        const sorted = Object.entries(db.users).sort((a,b) => b[1].balance - a[1].balance).slice(0, 5);
-        document.getElementById('top-list').innerHTML = sorted.map(([n, u]) => `<div style="display:flex; justify-content:space-between"><span>${n}</span><b>${u.balance.toFixed(2)}</b></div>`).join('<br>');
-    }
-
-    async function sendSTK() {
-        const to = document.getElementById('tx-to').value.trim();
-        const amt = parseFloat(document.getElementById('tx-amt').value);
-        if(!db.users[to] || isNaN(amt) || (cloud+loc) < amt) return alert("Помилка!");
-        db.users[cur].balance -= amt; db.users[to].balance += amt;
-        cloud -= amt;
+            if (r.ok) {
+                cloud += loc;
+                loc = 0;
+                document.getElementById('status').innerText = "✅ ЗБЕРЕЖЕНО";
+                renderTop();
+            }
+        } catch(e) {
+            document.getElementById('s
