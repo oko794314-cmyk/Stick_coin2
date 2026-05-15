@@ -11,40 +11,73 @@
             --t: #ffffff; --g: #00ff88; --r: #ff3366; --gold: #ffcc00;
         }
         * { box-sizing: border-box; font-family: 'Orbitron', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: var(--bg); color: var(--t); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(circle at 50% 0%, #0a1a3e 0%, #000 70%); z-index: -1; }
+        
+        body { 
+            background: var(--bg); color: var(--t); margin: 0; 
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column; 
+        }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(circle at 50% 0%, #0a1a3e 0%, #000 70%);
+            z-index: -1;
+        }
+
         .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
 
-        /* Auth */
+        /* Авторизація */
         #auth-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .auth-box { width: 85%; max-width: 340px; padding: 30px; text-align: center; }
         .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .auth-tab { flex: 1; padding: 10px; border: 1px solid #333; border-radius: 8px; cursor: pointer; color: #666; font-size: 12px; }
+        .auth-tab { flex: 1; padding: 10px; border: 1px solid #333; border-radius: 8px; cursor: pointer; color: #666; font-size: 11px; }
         .auth-tab.active { border-color: var(--p); color: var(--p); background: rgba(7, 255, 255, 0.05); }
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 12px; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; background: var(--p); color: #000; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
 
-        /* Main UI */
+        input { width: 100%; padding: 14px; margin: 8px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 12px; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; background: var(--p); color: #000; cursor: pointer; text-transform: uppercase; transition: 0.2s; margin-top: 5px; }
+        .btn:active { transform: scale(0.95); }
+
+        /* Інтерфейс */
         #app { display: none; flex-direction: column; height: 100vh; }
-        .header { padding: 15px 10px; display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(0,0,0,0.8); border-bottom: 1px solid #222; padding-top: env(safe-area-inset-top, 15px); }
+        .header { 
+            padding: 15px 10px; display: grid; grid-template-columns: repeat(3, 1fr); 
+            background: rgba(0,0,0,0.8); border-bottom: 1px solid #222;
+            padding-top: env(safe-area-inset-top, 15px);
+        }
         .h-item { text-align: center; }
         .h-label { font-size: 8px; color: #666; display: block; }
-        .h-val { font-size: 12px; color: var(--p); font-weight: 700; }
+        .h-val { font-size: 11px; color: var(--p); font-weight: 700; }
 
-        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; padding-bottom: 100px; }
-        .view.on { display: block; }
-        #bal { font-size: 3rem; font-weight: 900; text-align: center; margin: 20px 0; color: #fff; text-shadow: 0 0 20px var(--p); }
-        .m-orb { width: 180px; height: 180px; border-radius: 50%; border: 4px solid var(--g); margin: 0 auto; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 900; }
-        .m-orb.active { border-color: var(--r); box-shadow: 0 0 40px var(--r); }
+        .view { flex: 1; padding: 20px; display: none; overflow-y: auto; padding-bottom: 110px; }
+        .view.on { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .item-card { padding: 12px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid #222; }
-
-        nav { position: fixed; bottom: 0; width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); background: #000; border-top: 1px solid #222; padding-bottom: env(safe-area-inset-bottom, 10px); padding-top: 10px; }
-        .tab { text-align: center; font-size: 20px; color: #444; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
-        .tab.on { color: var(--p); }
-        .tab-label { font-size: 8px; text-transform: uppercase; font-weight: 700; }
+        #bal { font-size: 3rem; font-weight: 900; text-align: center; margin: 25px 0; color: #fff; text-shadow: 0 0 20px var(--p); }
         
-        .sync-led { width: 8px; height: 8px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
+        .m-orb { 
+            width: 170px; height: 170px; border-radius: 50%; border: 4px solid var(--g); 
+            margin: 0 auto; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; position: relative; font-weight: 900; transition: 0.3s;
+        }
+        .m-orb.active { border-color: var(--r); box-shadow: 0 0 40px var(--r); color: var(--r); }
+        
+        /* Списки */
+        .item-card { padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid #222; font-size: 12px; }
+        .req-card { border-left: 3px solid var(--gold); }
+        .btn-mini { padding: 6px 12px; border-radius: 6px; font-size: 10px; border: none; font-weight: 700; cursor: pointer; }
+        .btn-g { background: var(--g); color: #000; }
+        .btn-r { background: var(--r); color: #fff; }
+
+        /* Навігація */
+        nav { 
+            position: fixed; bottom: 0; width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); 
+            background: #000; border-top: 1px solid #222; 
+            padding-bottom: env(safe-area-inset-bottom, 10px); padding-top: 10px;
+        }
+        .tab { text-align: center; font-size: 20px; color: #444; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .tab.on { color: var(--p); }
+        .tab-label { font-size: 7px; text-transform: uppercase; font-weight: 700; margin-top: 4px; }
+        
+        .sync-led { width: 6px; height: 6px; border-radius: 50%; background: #333; display: inline-block; margin-right: 4px; }
         .sync-on { background: var(--g); box-shadow: 0 0 5px var(--g); }
     </style>
 </head>
@@ -52,10 +85,10 @@
 
     <div id="auth-screen">
         <div class="auth-box glass">
-            <h2 style="margin-bottom: 20px; letter-spacing: 5px;">STICK<span style="color:var(--p)">FARM</span></h2>
+            <h2 style="margin-bottom: 20px; letter-spacing: 4px;">STICK<span style="color:var(--p)">FARM</span></h2>
             <div class="auth-tabs">
-                <div class="auth-tab active" id="tab-login">ВХІД</div>
-                <div class="auth-tab" id="tab-reg">РЕЄСТРАЦІЯ</div>
+                <div class="auth-tab active" id="t-login">ВХІД</div>
+                <div class="auth-tab" id="t-reg">РЕЄСТРАЦІЯ</div>
             </div>
             <input type="text" id="u" placeholder="ЛОГІН" autocomplete="off">
             <input type="password" id="p" placeholder="ПАРОЛЬ">
@@ -73,27 +106,48 @@
         <div id="v-mine" class="view on">
             <div id="bal">0.00000</div>
             <div id="mbtn" class="m-orb">START</div>
-            <p style="text-align:center; font-size:9px; color:#555; margin-top:20px;">MULTI-DEVICE SYNC ENABLED</p>
+            <p style="text-align:center; font-size:9px; color:#444; margin-top:25px;">NODE: ACTIVE • MULTI-SYNC ON</p>
         </div>
 
-        <div id="v-social" class="view"><h4>ТОП ГРАВЦІВ</h4><div id="leaderboard"></div></div>
+        <div id="v-social" class="view">
+            <h4>TOP OPERATORS</h4>
+            <div id="leaderboard"></div>
+        </div>
+
         <div id="v-tx" class="view">
-            <h4>ПЕРЕКАЗ STK</h4>
+            <h4>P2P TRANSFER</h4>
             <div class="glass" style="padding: 15px;">
                 <input type="text" id="tx-to" placeholder="ОТРИМУВАЧ">
-                <input type="number" id="tx-amt" placeholder="СУМА">
+                <input type="number" id="tx-amt" placeholder="СУМА STK">
                 <button onclick="sendSTK()" class="btn">ВІДПРАВИТИ</button>
             </div>
         </div>
-        <div id="v-friends" class="view"><h4>ДРУЗІ</h4><div id="friend-list"></div></div>
+
+        <div id="v-friends" class="view">
+            <h4>ADD FRIEND</h4>
+            <div class="glass" style="padding: 15px; margin-bottom: 20px;">
+                <input type="text" id="f-input" placeholder="ВВЕДІТЬ ЛОГІН">
+                <button onclick="sendFriendRequest()" class="btn">НАДІСЛАТИ ЗАПИТ</button>
+            </div>
+            <h4>REQUESTS</h4>
+            <div id="friend-reqs" style="margin-bottom: 20px;"></div>
+            <h4>MY FRIENDS</h4>
+            <div id="friend-list"></div>
+        </div>
+
         <div id="v-games" class="view">
-            <h4>CASINO</h4>
+            <h4>DOUBLE OR NOTHING</h4>
             <div class="glass" style="padding: 20px; text-align: center;">
                 <input type="number" id="bet-amt" placeholder="СТАВКА">
                 <button onclick="playDouble()" class="btn" style="background:var(--gold);">ГРАТИ</button>
             </div>
         </div>
-        <div id="v-os" class="view"><h4>SYSTEM</h4><div class="glass item-card"><span>ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div><button onclick="logout()" class="btn" style="background:var(--r); color:#fff; margin-top:20px;">LOGOUT</button></div>
+
+        <div id="v-os" class="view">
+            <h4>SYSTEM</h4>
+            <div class="glass item-card"><span>NODE ID:</span> <span id="prof-id" style="color:var(--p)">---</span></div>
+            <button onclick="logout()" class="btn" style="background:var(--r); color:#fff; margin-top:20px;">LOGOUT</button>
+        </div>
 
         <nav>
             <div class="tab on" data-v="v-mine"><span>⛏️</span><span class="tab-label">Mine</span></div>
@@ -114,40 +168,38 @@
         let cur = null;
         let isMining = false;
         let isRegMode = false;
-        let balance = 0; // Актуальний баланс із хмари
-        let unpushedBalance = 0; // Те, що намайнено на цьому пристрої і ще не відправлено
+        let balance = 0;
+        let unpushed = 0;
 
-        // Auth
-        document.getElementById('tab-login').onclick = () => { isRegMode = false; updateAuthTabs(); };
-        document.getElementById('tab-reg').onclick = () => { isRegMode = true; updateAuthTabs(); };
-        function updateAuthTabs() {
-            document.getElementById('tab-login').classList.toggle('active', !isRegMode);
-            document.getElementById('tab-reg').classList.toggle('active', isRegMode);
+        // Авторизація
+        document.getElementById('t-login').onclick = () => { isRegMode = false; updateAuthUI(); };
+        document.getElementById('t-reg').onclick = () => { isRegMode = true; updateAuthUI(); };
+        
+        function updateAuthUI() {
+            document.getElementById('t-login').classList.toggle('active', !isRegMode);
+            document.getElementById('t-reg').classList.toggle('active', isRegMode);
             document.getElementById('auth-btn').innerText = isRegMode ? "РЕЄСТРАЦІЯ" : "ВВІЙТИ";
         }
 
         document.getElementById('auth-btn').onclick = async () => {
             const u = document.getElementById('u').value.trim().toLowerCase();
             const p = document.getElementById('p').value.trim();
-            if(!u || !p) return alert("Заповніть поля");
+            if(!u || !p) return alert("Заповніть поля!");
 
-            document.getElementById('auth-btn').innerText = "CONNECTING...";
             const res = await fetch(URL + "/latest", { headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" } });
             db = await res.json();
 
             if(isRegMode) {
-                if(db.users[u]) return alert("Зайнято");
-                db.users[u] = { password: p, balance: 0 };
-                await saveToCloud();
-                alert("Готово!"); location.reload();
+                if(db.users[u]) return alert("Логін зайнятий!");
+                db.users[u] = { password: p, balance: 0, friends: [], reqs: [] };
+                await pushDB();
+                alert("Аккаунт створено!"); location.reload();
             } else {
                 if(db.users[u] && db.users[u].password === p) {
                     cur = u;
                     balance = db.users[u].balance || 0;
                     enterApp();
-                } else {
-                    alert("Помилка"); location.reload();
-                }
+                } else alert("Помилка входу!");
             }
         };
 
@@ -156,67 +208,56 @@
             document.getElementById('app').style.display = 'flex';
             document.getElementById('prof-id').innerText = cur;
             updateUI();
-            setInterval(syncProcess, 15000); // Синхронізація кожні 15 сек
+            setInterval(sync, 15000); 
         }
 
-        // Mining
+        // Майнінг
         document.getElementById('mbtn').onclick = function() {
             isMining = !isMining;
             this.classList.toggle('active', isMining);
             this.innerText = isMining ? "STOP" : "START";
-            if(isMining) mineTick();
+            if(isMining) tick();
         };
 
-        function mineTick() {
+        function tick() {
             if(!isMining) return;
-            let gain = (1 / 3600); 
-            unpushedBalance += gain; // Додаємо до локального невідправленого залишку
+            unpushed += (1 / 3600);
             updateUI();
-            setTimeout(mineTick, 1000);
+            setTimeout(tick, 1000);
         }
 
         function updateUI() {
-            let total = balance + unpushedBalance;
+            const total = balance + unpushed;
             document.getElementById('bal').innerText = total.toFixed(5);
             document.getElementById('h-bal').innerText = total.toFixed(2);
             document.getElementById('h-lvl').innerText = Math.floor(total / 10) + 1;
         }
 
-        // Смарт-синхронізація
-        async function syncProcess() {
+        // Синхронізація
+        async function sync() {
             const led = document.getElementById('led');
             led.classList.add('sync-on');
-
             try {
-                // 1. Отримуємо свіжі дані (хтось інший міг намайнити)
                 const res = await fetch(URL + "/latest", { headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" } });
-                const freshDB = await res.json();
+                const fresh = await res.json();
                 
-                // 2. Оновлюємо наш основний баланс із хмари
-                balance = freshDB.users[cur].balance || 0;
+                // Зберігаємо свій баланс
+                balance = fresh.users[cur].balance || 0;
+                fresh.users[cur].balance = balance + unpushed;
                 
-                // 3. Додаємо наш локальний видобуток до хмарного балансу
-                freshDB.users[cur].balance = balance + unpushedBalance;
+                db = fresh; 
+                await pushDB();
                 
-                // 4. Відправляємо оновлену суму назад
-                await fetch(URL, {
-                    method: 'PUT',
-                    headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
-                    body: JSON.stringify(freshDB)
-                });
-
-                // 5. Тільки якщо запит успішний — очищаємо локальний "невідправлений" залишок
-                balance += unpushedBalance;
-                unpushedBalance = 0;
-                db = freshDB; 
-
-            } catch (e) { console.log("Sync error"); }
-            
-            setTimeout(() => led.classList.remove('sync-on'), 1000);
+                balance += unpushed;
+                unpushed = 0;
+                renderFriends();
+                renderTop();
+            } catch(e) {}
+            setTimeout(() => led.classList.remove('sync-on'), 800);
             updateUI();
         }
 
-        async function saveToCloud() {
+        async function pushDB() {
             await fetch(URL, {
                 method: 'PUT',
                 headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
@@ -224,33 +265,89 @@
             });
         }
 
-        // Casino & Transactions
-        async function playDouble() {
-            const amt = parseFloat(document.getElementById('bet-amt').value);
-            if(amt > (balance + unpushedBalance) || amt <= 0) return alert("Мало STK");
-            const win = Math.random() > 0.5;
-            unpushedBalance = win ? unpushedBalance + amt : unpushedBalance - amt;
-            alert(win ? "WIN! 🎉" : "LOSE... 💀");
-            syncProcess();
+        // --- ДРУЗІ ---
+        async function sendFriendRequest() {
+            const target = document.getElementById('f-input').value.trim().toLowerCase();
+            if(!db.users[target]) return alert("Користувача не знайдено!");
+            if(target === cur) return alert("Це ви :)");
+            
+            if(!db.users[target].reqs) db.users[target].reqs = [];
+            if(db.users[target].reqs.includes(cur)) return alert("Запит вже надіслано!");
+            
+            db.users[target].reqs.push(cur);
+            await pushDB();
+            alert("Запит надіслано " + target);
+            document.getElementById('f-input').value = "";
+        }
+
+        function renderFriends() {
+            const reqDiv = document.getElementById('friend-reqs');
+            const listDiv = document.getElementById('friend-list');
+            const uData = db.users[cur];
+
+            // Запити
+            reqDiv.innerHTML = (uData.reqs || []).map(r => `
+                <div class="item-card req-card">
+                    <span>${r}</span>
+                    <div>
+                        <button class="btn-mini btn-g" onclick="acceptFriend('${r}')">OK</button>
+                        <button class="btn-mini btn-r" onclick="rejectFriend('${r}')">X</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Список друзів
+            listDiv.innerHTML = (uData.friends || []).map(f => `
+                <div class="item-card">
+                    <span>👤 ${f}</span>
+                    <span style="color:var(--p)">ONLINE</span>
+                </div>
+            `).join('');
+        }
+
+        async function acceptFriend(name) {
+            db.users[cur].reqs = db.users[cur].reqs.filter(r => r !== name);
+            if(!db.users[cur].friends) db.users[cur].friends = [];
+            db.users[cur].friends.push(name);
+            
+            if(!db.users[name].friends) db.users[name].friends = [];
+            db.users[name].friends.push(cur);
+            
+            await pushDB();
+            renderFriends();
+        }
+
+        async function rejectFriend(name) {
+            db.users[cur].reqs = db.users[cur].reqs.filter(r => r !== name);
+            await pushDB();
+            renderFriends();
+        }
+
+        // Інше
+        function renderTop() {
+            const list = document.getElementById('leaderboard');
+            const sorted = Object.entries(db.users).sort((a,b) => (b[1].balance||0) - (a[1].balance||0));
+            list.innerHTML = sorted.slice(0, 10).map(([n, d], i) => `
+                <div class="item-card"><span>#${i+1} ${n}</span><span style="color:var(--g)">${(d.balance||0).toFixed(2)}</span></div>
+            `).join('');
         }
 
         async function sendSTK() {
             const to = document.getElementById('tx-to').value.trim().toLowerCase();
             const amt = parseFloat(document.getElementById('tx-amt').value);
-            if(!db.users[to]) return alert("Немає такого юзера");
-            if(amt > (balance + unpushedBalance)) return alert("Мало STK");
-            
-            unpushedBalance -= amt;
-            await syncProcess(); // Відправляємо негайно
-            alert("Sent!");
+            if(!db.users[to] || amt > (balance + unpushed) || amt <= 0) return alert("Помилка транзакції");
+            unpushed -= amt;
+            db.users[to].balance = (db.users[to].balance || 0) + amt;
+            await sync(); alert("Успішно!");
         }
 
-        function renderTop() {
-            const list = document.getElementById('leaderboard');
-            const sorted = Object.entries(db.users).sort((a,b) => (b[1].balance||0) - (a[1].balance||0));
-            list.innerHTML = sorted.map(([n, d], i) => `
-                <div class="item-card"><span>#${i+1} ${n}</span><span style="color:var(--g)">${(d.balance||0).toFixed(2)} STK</span></div>
-            `).join('');
+        async function playDouble() {
+            const amt = parseFloat(document.getElementById('bet-amt').value);
+            if(amt > (balance + unpushed) || amt <= 0) return alert("Мало коштів");
+            const win = Math.random() > 0.5;
+            unpushed = win ? unpushed + amt : unpushed - amt;
+            alert(win ? "WIN! 🎉" : "LOSE... 💀");
+            sync();
         }
 
         document.querySelectorAll('.tab').forEach(t => {
@@ -260,6 +357,7 @@
                 t.classList.add('on');
                 document.getElementById(t.dataset.v).classList.add('on');
                 if(t.dataset.v === 'v-social') renderTop();
+                if(t.dataset.v === 'v-friends') renderFriends();
             };
         });
 
